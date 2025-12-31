@@ -3,45 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kasir Pro V40.0</title>
+    <title>Kasir Pro V41.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        body { background-color: #f1f5f9; font-family: sans-serif; padding-bottom: 120px; }
+        body { background-color: #f8fafc; font-family: sans-serif; padding-bottom: 100px; }
         
-        /* Layout Struk Pas Kertas */
-        #receipt-canvas { background: white; width: 80mm; margin: 0 auto; padding: 15px 0; color: black; font-family: 'Courier New', Courier, monospace; }
-        .receipt-inner { padding: 0 2mm; font-size: 12px; line-height: 1.2; }
+        /* Optimasi Struk Penjualan */
+        #receipt-canvas { background: white; width: 80mm; margin: 0 auto; padding: 10px 0; color: black; font-family: 'Courier New', Courier, monospace; }
+        .receipt-inner { padding: 0 3mm; font-size: 13px; line-height: 1.2; }
         .full-line { border-top: 1px dashed black; width: 100%; margin: 6px 0; }
         
-        /* Tabel Audit Presisi */
-        .table-audit { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; }
-        .table-audit th { border-bottom: 1px solid black; padding: 4px 0; font-weight: bold; text-align: left; }
-        .table-audit td { padding: 5px 0; overflow: hidden; white-space: nowrap; }
+        .table-audit { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
+        .table-audit td { padding: 4px 0; vertical-align: top; }
         
         #preview-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: none; flex-direction: column; align-items: center; padding: 10px; overflow-y: auto; }
-        .sig-container { display: flex; justify-content: space-between; margin-top: 25px; text-align: center; font-size: 9px; }
-        .sig-box { width: 48%; }
-        .sig-space { height: 40px; border-bottom: 1px dotted #ccc; margin-bottom: 5px; width: 80%; margin-left: 10%; }
-        .tab-active { border-bottom: 4px solid #1e40af; color: #1e40af; font-weight: 900; }
+        .tab-active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: 900; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #e2e8f0; z-index: 50; }
     </style>
 </head>
 <body>
 
     <div id="modal-settings" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center p-6">
-        <div class="bg-white w-full max-w-sm rounded-[32px] p-8 space-y-4 shadow-2xl">
-            <h2 class="font-black text-center text-slate-800 uppercase text-sm">Pengaturan Toko</h2>
-            <div class="space-y-1">
-                <label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">Nama Toko</label>
-                <input type="text" id="cfgNama" class="w-full bg-slate-100 p-4 rounded-2xl font-bold uppercase outline-none">
+        <div class="bg-white w-full max-w-sm rounded-[32px] p-8 space-y-4">
+            <h2 class="font-black text-center text-slate-800 uppercase text-sm">Pengaturan & Database</h2>
+            <div class="space-y-3">
+                <input type="text" id="cfgNama" placeholder="NAMA TOKO" class="w-full bg-slate-100 p-4 rounded-2xl font-bold uppercase outline-none">
+                <input type="text" id="cfgHp" placeholder="NO HP" class="w-full bg-slate-100 p-4 rounded-2xl font-bold outline-none">
             </div>
-            <div class="space-y-1">
-                <label class="text-[10px] font-bold text-slate-400 ml-2 uppercase">No. HP</label>
-                <input type="text" id="cfgHp" class="w-full bg-slate-100 p-4 rounded-2xl font-bold outline-none">
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="exportCSV()" class="bg-emerald-600 text-white p-3 rounded-xl font-bold text-[10px] uppercase">💾 Export Excel/CSV</button>
+                <button onclick="document.getElementById('importInput').click()" class="bg-amber-600 text-white p-3 rounded-xl font-bold text-[10px] uppercase">📂 Import CSV</button>
+                <input type="file" id="importInput" class="hidden" accept=".csv" onchange="importCSV(event)">
             </div>
             <div class="flex gap-2 pt-4">
-                <button onclick="toggleSettings()" class="flex-1 bg-slate-200 text-slate-600 py-4 rounded-2xl font-bold uppercase">Batal</button>
+                <button onclick="toggleSettings()" class="flex-1 bg-slate-200 py-4 rounded-2xl font-bold uppercase">Batal</button>
                 <button onclick="saveConfig()" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-bold uppercase">Simpan</button>
             </div>
         </div>
@@ -50,38 +46,42 @@
     <div id="preview-modal">
         <div id="receipt-canvas" class="shadow-2xl"><div class="receipt-inner" id="receipt-content"></div></div>
         <div class="grid grid-cols-1 gap-3 w-full max-w-xs mt-6 px-4">
-            <button onclick="printBluetooth()" class="bg-blue-600 text-white py-5 rounded-2xl font-black shadow-lg uppercase">🖨️ Cetak Ke Printer</button>
-            <button onclick="closePreview()" class="bg-red-600 text-white py-4 rounded-2xl font-black text-xs uppercase">Kembali</button>
+            <button onclick="printBluetooth()" class="bg-blue-600 text-white py-5 rounded-2xl font-black shadow-lg uppercase">🖨️ Cetak Struk</button>
+            <button onclick="closePreview()" class="bg-red-600 text-white py-4 rounded-2xl font-black text-xs uppercase">Tutup</button>
         </div>
     </div>
 
     <div class="bg-slate-900 text-white p-5 flex justify-between items-center sticky top-0 z-40">
-        <div><h1 id="shopNameDisplay" class="font-black text-lg uppercase tracking-tight">TOKO KITA</h1><p class="text-[9px] opacity-60 uppercase">Audit Precision V40.0</p></div>
-        <button onclick="toggleSettings()" class="bg-slate-800 w-12 h-12 rounded-2xl flex items-center justify-center text-xl">⚙️</button>
+        <div><h1 id="shopNameDisplay" class="font-black text-lg uppercase">KASIR PRO</h1><p class="text-[9px] opacity-60 uppercase">Power V41.0</p></div>
+        <button onclick="toggleSettings()" class="bg-slate-800 w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-inner">⚙️</button>
     </div>
 
     <div class="max-w-md mx-auto px-4 mt-4">
         <div id="sec-kasir" class="space-y-4">
             <div class="bg-white p-5 rounded-3xl border shadow-sm space-y-3">
-                <select id="prodSelect" class="w-full bg-blue-50 p-4 rounded-2xl font-black text-sm outline-none"></select>
+                <select id="prodSelect" class="w-full bg-blue-50 p-4 rounded-2xl font-black text-sm outline-none border-2 border-blue-100"></select>
                 <div class="flex gap-2">
-                    <input type="number" id="saleQty" value="1" class="flex-1 bg-slate-50 p-4 rounded-2xl text-center font-black">
+                    <input type="number" id="saleQty" value="1" class="flex-1 bg-slate-50 p-4 rounded-2xl text-center font-black border">
                     <button onclick="addSaleItem()" class="flex-[2] bg-blue-700 text-white py-4 rounded-2xl font-black uppercase">TAMBAH</button>
                 </div>
             </div>
+            
             <div id="saleList" class="space-y-2"></div>
-            <div class="bg-slate-900 text-white p-6 rounded-[40px] space-y-4">
-                <div class="flex justify-between items-center"><span class="text-xs opacity-50 uppercase font-bold">Total Tagihan</span><span class="text-2xl font-black text-blue-400">Rp <span id="displayTotal">0</span></span></div>
-                <input type="number" id="salePay" placeholder="NOMINAL BAYAR" class="w-full bg-slate-800 p-4 rounded-2xl text-emerald-400 font-bold outline-none text-center">
-                <button onclick="finalProcess('PENJUALAN')" class="w-full bg-blue-600 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl">PROSES NOTA</button>
+
+            <div class="bg-slate-900 text-white p-6 rounded-[35px] space-y-4 shadow-xl">
+                <div class="flex justify-between items-center"><span class="text-xs opacity-50 font-bold uppercase">Total Tagihan</span><span class="text-2xl font-black text-blue-400">Rp <span id="displayTotal">0</span></span></div>
+                <div class="space-y-2">
+                    <input type="number" id="salePay" oninput="calculateChange()" placeholder="JUMLAH BAYAR" class="w-full bg-slate-800 p-4 rounded-2xl text-emerald-400 font-bold outline-none text-center text-xl">
+                    <div class="flex justify-between items-center px-2">
+                        <span class="text-[10px] font-bold opacity-50 uppercase">Kembalian:</span>
+                        <span class="text-xl font-black text-orange-400">Rp <span id="displayChange">0</span></span>
+                    </div>
+                </div>
+                <button onclick="finalProcess('PENJUALAN')" class="w-full bg-blue-600 py-5 rounded-2xl font-black uppercase tracking-widest">BAYAR & CETAK</button>
             </div>
         </div>
 
         <div id="sec-retur" class="hidden space-y-4">
-            <div class="flex gap-2">
-                <button onclick="renderInventory('audit')" class="flex-1 bg-slate-900 text-white py-3 rounded-xl text-[10px] font-bold uppercase shadow-md">📊 Mode Audit</button>
-                <button onclick="renderInventory('manage')" class="flex-1 bg-blue-100 text-blue-700 py-3 rounded-xl text-[10px] font-bold uppercase">✏️ Edit Data</button>
-            </div>
             <div id="inventoryStatus" class="space-y-2"></div>
             <div class="grid grid-cols-2 gap-2 mt-4">
                 <button onclick="prepareStockReport()" class="bg-orange-500 text-white py-5 rounded-2xl font-black text-[10px] uppercase shadow-lg">🖨️ CETAK AUDIT</button>
@@ -90,42 +90,179 @@
         </div>
 
         <div id="sec-ambil" class="hidden space-y-4">
-            <div class="bg-emerald-600 p-6 rounded-[30px] text-white space-y-3 shadow-lg">
-                <input type="text" id="restockName" placeholder="NAMA BARANG" class="w-full p-4 rounded-xl text-slate-900 font-bold uppercase outline-none">
+            <div class="bg-emerald-600 p-6 rounded-[30px] text-white shadow-lg space-y-3">
+                <input type="text" id="restockName" placeholder="NAMA BARANG" class="w-full p-4 rounded-xl text-slate-900 font-bold uppercase">
                 <div class="flex gap-2">
-                    <input type="number" id="restockPrice" placeholder="HARGA" class="flex-1 p-4 rounded-xl text-slate-900 font-bold outline-none">
-                    <input type="number" id="restockQty" placeholder="STOK" class="w-24 p-4 rounded-xl text-slate-900 font-bold outline-none">
+                    <input type="number" id="restockPrice" placeholder="HARGA" class="flex-1 p-4 rounded-xl text-slate-900 font-bold">
+                    <input type="number" id="restockQty" placeholder="STOK" class="w-24 p-4 rounded-xl text-slate-900 font-bold">
                 </div>
                 <button onclick="addToQueue()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase">DAFTARKAN</button>
             </div>
             <div id="queueList" class="space-y-2"></div>
-            <button id="btnConfirmRestock" onclick="processQueue()" class="hidden w-full bg-emerald-700 text-white py-5 rounded-2xl font-black uppercase shadow-lg">KONFIRMASI SIMPAN</button>
+            <button id="btnConfirmRestock" onclick="processQueue()" class="hidden w-full bg-emerald-700 text-white py-5 rounded-2xl font-black uppercase shadow-lg">SIMPAN KE DATABASE</button>
         </div>
 
         <div id="sec-laporan" class="hidden space-y-3">
             <div id="historyList"></div>
-            <button onclick="resetAllData()" class="w-full mt-10 text-red-400 text-[9px] uppercase font-bold py-4">Format Database</button>
         </div>
     </div>
 
     <div class="bottom-nav">
         <button onclick="switchTab('kasir')" id="t-kasir" class="flex-1 py-5 text-[10px] font-black tab-active">KASIR</button>
         <button onclick="switchTab('retur')" id="t-retur" class="flex-1 py-5 text-[10px] font-black">STOK</button>
-        <button onclick="switchTab('ambil')" id="t-ambil" class="flex-1 py-5 text-[10px] font-black">BARANG</button>
+        <button onclick="switchTab('ambil')" id="t-ambil" class="flex-1 py-5 text-[10px] font-black">MASTER</button>
         <button onclick="switchTab('laporan')" id="t-laporan" class="flex-1 py-5 text-[10px] font-black">RIWAYAT</button>
     </div>
 
     <script>
-        let inventory = JSON.parse(localStorage.getItem('v40_stok')) || [];
-        let config = JSON.parse(localStorage.getItem('v40_conf')) || { nama: "NAMA TOKO ANDA", hp: "08XX-XXXX-XXXX" };
-        let historyTrx = JSON.parse(localStorage.getItem('v40_hist')) || [];
+        let inventory = JSON.parse(localStorage.getItem('v41_stok')) || [];
+        let config = JSON.parse(localStorage.getItem('v41_conf')) || { nama: "NAMA TOKO ANDA", hp: "08XX-XXXX-XXXX" };
+        let historyTrx = JSON.parse(localStorage.getItem('v41_hist')) || [];
         let tempCart = [], restockQueue = [];
 
         function init() { document.getElementById('cfgNama').value = config.nama; document.getElementById('cfgHp').value = config.hp; updateUI(); updateDropdown(); }
         function toggleSettings() { document.getElementById('modal-settings').classList.toggle('hidden'); }
-        function saveConfig() { config.nama = document.getElementById('cfgNama').value.toUpperCase(); config.hp = document.getElementById('cfgHp').value; localStorage.setItem('v40_conf', JSON.stringify(config)); updateUI(); toggleSettings(); }
+        function saveConfig() { config.nama = document.getElementById('cfgNama').value.toUpperCase(); config.hp = document.getElementById('cfgHp').value; localStorage.setItem('v41_conf', JSON.stringify(config)); updateUI(); toggleSettings(); }
         function updateUI() { document.getElementById('shopNameDisplay').innerText = config.nama; }
-        
+
+        // --- KEMBALIAN LOGIC ---
+        function calculateChange() {
+            const total = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0);
+            const pay = parseInt(document.getElementById('salePay').value) || 0;
+            const change = pay - total;
+            document.getElementById('displayChange').innerText = change > 0 ? change.toLocaleString() : "0";
+        }
+
+        // --- IMPORT/EXPORT EXCEL (CSV) ---
+        function exportCSV() {
+            let csv = "Nama Barang,Harga,Stok Sisa,Terjual\n";
+            inventory.forEach(it => { csv += `${it.name},${it.price},${it.qty},${it.sold||0}\n`; });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `Database_Stok_${config.nama}.csv`);
+            a.click();
+        }
+
+        function importCSV(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const rows = e.target.result.split("\n");
+                inventory = [];
+                for(let i=1; i<rows.length; i++) {
+                    const cols = rows[i].split(",");
+                    if(cols.length >= 3) {
+                        inventory.push({ name: cols[0].toUpperCase(), price: parseInt(cols[1]), qty: parseInt(cols[2]), sold: parseInt(cols[3]) || 0 });
+                    }
+                }
+                saveInv();
+                alert("Import Berhasil!");
+                location.reload();
+            };
+            reader.readAsText(file);
+        }
+
+        // --- OPTIMASI FAKTUR PENJUALAN ---
+        function finalProcess(m) {
+            const total = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0);
+            const pay = parseInt(document.getElementById('salePay').value) || 0;
+            if(total === 0) return alert("Keranjang kosong!");
+            if(pay < total && m === 'PENJUALAN') return alert("Pembayaran kurang!");
+
+            window.activeTrx = { type: m, date: new Date().toLocaleString('id-ID'), total, pay, change: pay-total, items: [...tempCart] };
+            
+            let itemHtml = window.activeTrx.items.map(it => `
+                <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                    <span style="flex:2;">${it.name}</span>
+                    <span style="flex:1; text-align:center;">${it.qty}</span>
+                    <span style="flex:1.5; text-align:right;">${(it.price*it.qty).toLocaleString()}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('receipt-content').innerHTML = `
+                <div style="text-align:center;"><b style="font-size:16px;">${config.nama}</b><br>${config.hp}</div>
+                <div class="full-line"></div>
+                <div style="font-size:10px; margin-bottom:10px;">Tgl: ${window.activeTrx.date}<br>Nota: TRX-${Date.now().toString().slice(-6)}</div>
+                <div style="display:flex; font-weight:bold; border-bottom:1px solid black; padding-bottom:4px; margin-bottom:4px;">
+                    <span style="flex:2;">ITEM</span><span style="flex:1; text-align:center;">QTY</span><span style="flex:1.5; text-align:right;">SUB</span>
+                </div>
+                ${itemHtml}
+                <div class="full-line"></div>
+                <div style="display:flex; justify-content:space-between;"><b>TOTAL</b><b>Rp ${total.toLocaleString()}</b></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span>TUNAI</span><span>${pay.toLocaleString()}</span></div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;"><span>KEMBALI</span><span>${(pay-total).toLocaleString()}</span></div>
+                <div class="full-line"></div>
+                <div style="text-align:center; font-size:11px; margin-top:10px;">TERIMA KASIH<br>BARANG YANG SUDAH DIBELI<br>TIDAK DAPAT DITUKAR/DIKEMBALIKAN</div>
+            `;
+            document.getElementById('preview-modal').style.display = 'flex';
+        }
+
+        // --- SISTEM AUDIT & MASTER ---
+        function prepareStockReport() {
+            let totalOmzet = 0;
+            let rows = inventory.map(it => {
+                const awal = it.qty + (it.sold || 0);
+                const sub = it.sold * it.price;
+                totalOmzet += sub;
+                return `<tr><td>${it.name.substring(0,12)}</td><td>${awal} | ${it.qty}</td><td align="center">${it.sold}</td><td align="right">${sub.toLocaleString()}</td></tr>`;
+            }).join('');
+
+            window.activeTrx = { type: "LAPORAN AUDIT", date: new Date().toLocaleString('id-ID'), total: totalOmzet };
+            document.getElementById('receipt-content').innerHTML = `
+                <div style="text-align:center;"><b>${config.nama}</b><br>LAPORAN AUDIT STOK</div>
+                <div class="full-line"></div>
+                <table class="table-audit">
+                    <tr><th>ITEM</th><th>AWL | SIS</th><th align="center">LKU</th><th align="right">OMZET</th></tr>
+                    ${rows}
+                </table>
+                <div class="full-line"></div>
+                <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>TOTAL OMZET</span><span>Rp ${totalOmzet.toLocaleString()}</span></div>
+                <div style="display:flex; justify-content:space-between; margin-top:30px; text-align:center; font-size:10px;">
+                    <div style="width:45%;">PENGAMBIL<br><br><br>(............)</div>
+                    <div style="width:45%;">PETUGAS<br><br><br>(............)</div>
+                </div>
+                <div class="full-line"></div><div style="text-align:center; font-size:9px;">${window.activeTrx.date}</div>
+            `;
+            document.getElementById('preview-modal').style.display = 'flex';
+        }
+
+        // --- BLUETOOTH PRINT ---
+        async function printBluetooth() {
+            const trx = window.activeTrx;
+            try {
+                const device = await navigator.bluetooth.requestDevice({ filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }] });
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+                const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+                const pad = (s, l, a='left') => { s=s.toString(); return a==='left' ? s.padEnd(l) : s.padStart(l); };
+
+                let c = '\x1b\x40\x1b\x61\x01\x1b\x21\x10' + config.nama + '\n\x1b\x21\x00' + config.hp + '\n------------------------------------------------\n';
+                
+                if(trx.type === "PENJUALAN" || trx.type === "REPRINT") {
+                    c += `Tgl: ${trx.date}\n------------------------------------------------\n`;
+                    trx.items.forEach(it => {
+                        c += pad(it.name, 48) + "\n" + pad(`  ${it.qty} x ${it.price.toLocaleString()}`, 34) + pad((it.price*it.qty).toLocaleString(), 14, 'right') + "\n";
+                    });
+                    c += `------------------------------------------------\n` + pad("TOTAL", 30) + pad("Rp "+trx.total.toLocaleString(), 18, 'right') + "\n" + pad("BAYAR", 30) + pad(trx.pay.toLocaleString(), 18, 'right') + "\n" + pad("KEMBALI", 30) + pad(trx.change.toLocaleString(), 18, 'right') + "\n\n\x1b\x61\x01TERIMA KASIH\n";
+                } else {
+                    c += "LAPORAN AUDIT STOK\n------------------------------------------------\n" + pad("ITEM", 15) + pad("AWL | SIS", 13) + pad("LKU", 5, 'center') + pad("OMZET", 15, 'right') + "\n";
+                    inventory.forEach(it => {
+                        const awal = it.qty + (it.sold || 0);
+                        c += pad(it.name.substring(0, 14), 15) + pad(`${awal} | ${it.qty}`, 13) + pad(it.sold, 5, 'center') + pad((it.sold*it.price).toLocaleString(), 15, 'right') + "\n";
+                    });
+                    c += `------------------------------------------------\n` + pad("TOTAL OMZET", 30) + pad("Rp "+trx.total.toLocaleString(), 18, 'right') + "\n";
+                }
+
+                c += `\n\x1b\x61\x01` + trx.date + `\n\n\n\n\n\x1b\x6d`;
+                const enc = new TextEncoder().encode(c);
+                for (let i = 0; i < enc.length; i += 20) { await char.writeValue(enc.slice(i, i + 20)); await new Promise(r => setTimeout(r, 25)); }
+                if(trx.type === "PENJUALAN") confirmAction(); else closePreview();
+            } catch (err) { alert("Printer Error!"); }
+        }
+
+        // --- GENERAL APP LOGIC ---
         function switchTab(t) {
             ['sec-kasir','sec-retur','sec-ambil','sec-laporan'].forEach(s => document.getElementById(s).classList.add('hidden'));
             ['t-kasir','t-retur','t-ambil','t-laporan'].forEach(b => document.getElementById(b).classList.remove('tab-active'));
@@ -134,108 +271,29 @@
             if(t==='retur') renderInventory('audit');
             if(t==='laporan') renderHistory();
         }
-
-        function renderInventory(mode) {
-            const container = document.getElementById('inventoryStatus');
-            container.innerHTML = inventory.map((it, i) => {
-                const awal = it.qty + (it.sold || 0);
-                if (mode === 'audit') {
-                    return `<div class="bg-white p-4 rounded-xl border flex justify-between shadow-sm items-center"><div class="text-[10px] font-bold uppercase">${it.name}<br><span class="font-normal opacity-40">${awal} | ${it.qty} (Laku ${it.sold})</span></div><div class="text-right font-black text-blue-600 text-xs">Rp ${(it.sold*it.price).toLocaleString()}</div></div>`;
-                } else {
-                    return `<div class="bg-white p-4 rounded-xl border shadow-sm space-y-2"><div class="flex justify-between items-center"><input type="text" onchange="inventory[${i}].name=this.value.toUpperCase();saveInv()" value="${it.name}" class="w-full text-xs font-black outline-none uppercase"></div><div class="flex gap-2"><input type="number" onchange="inventory[${i}].price=parseInt(this.value);saveInv()" value="${it.price}" class="flex-1 bg-slate-50 p-2 rounded font-bold text-xs text-blue-600"><input type="number" onchange="inventory[${i}].qty=parseInt(this.value);saveInv()" value="${it.qty}" class="w-20 bg-slate-50 p-2 rounded font-bold text-xs text-center"></div></div>`;
-                }
-            }).join('') || "<div class='py-10 text-center opacity-20 text-xs'>KOSONG</div>";
-        }
-
-        function saveInv() { localStorage.setItem('v40_stok', JSON.stringify(inventory)); updateDropdown(); }
-
-        // --- PREPARE AUDIT (SPACING "I" & ALIGNED) ---
-        function prepareStockReport() {
-            let total = 0;
-            let rows = inventory.map(it => {
-                const awal = it.qty + (it.sold || 0);
-                const sub = it.sold * it.price;
-                total += sub;
-                return `<tr><td style="width:35%">${it.name.substring(0,12)}</td><td style="width:25%">${awal} | ${it.qty}</td><td align="center" style="width:10%">${it.sold}</td><td align="right" style="width:30%"><b>${sub.toLocaleString()}</b></td></tr>`;
-            }).join('');
-
-            window.activeTrx = { type: "LAPORAN AUDIT", date: new Date().toLocaleString('id-ID'), total };
-            
-            document.getElementById('receipt-content').innerHTML = `
-                <div style="text-align:center;"><b style="font-size:16px;">${config.nama}</b><br>HP: ${config.hp}</div>
-                <div class="full-line"></div>
-                <div style="text-align:center; font-weight:bold; margin-bottom:5px;">LAPORAN AUDIT STOK</div>
-                <table class="table-audit">
-                    <thead>
-                        <tr>
-                            <th style="width:35%">BARANG</th>
-                            <th style="width:25%">AWL | SIS</th>
-                            <th align="center" style="width:10%">LKU</th>
-                            <th align="right" style="width:30%">OMZET</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>
-                <div class="full-line"></div>
-                <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:bold;"><span>TOTAL OMZET</span><span>Rp ${total.toLocaleString()}</span></div>
-                <div class="sig-container">
-                    <div class="sig-box">PENGAMBIL<div class="sig-space"></div>( ............ )</div>
-                    <div class="sig-box">PETUGAS<div class="sig-space"></div>( ............ )</div>
-                </div>
-                <div class="full-line" style="margin-top:10px;"></div>
-                <div style="text-align:center; font-size:9px; opacity:0.6;">${window.activeTrx.date}</div>
-            `;
-            document.getElementById('preview-modal').style.display = 'flex';
-        }
-
-        async function printBluetooth() {
-            const trx = window.activeTrx;
-            const CHUNK = 20;
-            try {
-                const device = await navigator.bluetooth.requestDevice({ filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }] });
-                const server = await device.gatt.connect();
-                const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-                const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-                const pad = (s, l, a='left') => { s=s.toString(); return a==='left' ? s.padEnd(l) : s.padStart(l); };
-
-                let c = '\x1b\x40\x1b\x61\x01\x1b\x21\x10' + config.nama + '\n\x1b\x21\x00HP: ' + config.hp + '\n------------------------------------------------\n' + trx.type + '\n------------------------------------------------\n\x1b\x61\x00';
-                
-                if(trx.type === "LAPORAN AUDIT") {
-                    c += pad("ITEM", 15) + pad("AWL | SIS", 13) + pad("LKU", 5, 'center') + pad("OMZET", 15, 'right') + "\n";
-                    c += "------------------------------------------------\n";
-                    inventory.forEach(it => {
-                        const awal = it.qty + (it.sold || 0);
-                        c += pad(it.name.substring(0, 14), 15) + pad(`${awal} | ${it.qty}`, 13) + pad(it.sold, 5, 'center') + pad((it.sold*it.price).toLocaleString(), 15, 'right') + "\n";
-                    });
-                    c += "------------------------------------------------\n" + pad("TOTAL OMZET", 30) + pad("Rp "+trx.total.toLocaleString(), 18, 'right') + "\n\n";
-                    c += pad(" PENGAMBIL BARANG", 24) + pad("PETUGAS/PEMILIK ", 24, 'right') + "\n\n\n\n";
-                    c += pad("(               )", 24) + pad("(               )", 24, 'right') + "\n";
-                }
-
-                c += `\n\x1b\x61\x01` + trx.date + `\n\n\n\n\n\x1b\x6d`;
-                const enc = new TextEncoder().encode(c);
-                for (let i = 0; i < enc.length; i += CHUNK) { await char.writeValue(enc.slice(i, i + CHUNK)); await new Promise(r => setTimeout(r, 25)); }
-                closePreview();
-            } catch (err) { alert("Printer tidak terhubung!"); }
-        }
-
-        // --- SISTEM KASIR & DROPDOWN ---
         function addSaleItem() {
             const i = document.getElementById('prodSelect').value; if(i==="") return;
             const q = parseInt(document.getElementById('saleQty').value) || 1;
             const it = inventory[i]; if(q > it.qty) return alert("Stok kurang!");
             const ex = tempCart.find(c => c.name === it.name); if(ex) ex.qty += q; else tempCart.push({name: it.name, price: it.price, qty: q});
-            renderSaleList();
+            renderSaleList(); calculateChange();
         }
         function renderSaleList() {
-            document.getElementById('saleList').innerHTML = tempCart.map((c, i) => `<div class="bg-white p-4 rounded-xl border flex justify-between shadow-sm"><div class="text-xs font-bold uppercase">${c.name}<br><span class="opacity-40">@${c.price.toLocaleString()} x ${c.qty}</span></div><button onclick="tempCart.splice(${i},1);renderSaleList()" class="text-red-500 font-bold px-2">×</button></div>`).join('');
+            document.getElementById('saleList').innerHTML = tempCart.map((c, i) => `<div class="bg-white p-4 rounded-xl border flex justify-between shadow-sm items-center"><div class="text-xs font-bold uppercase">${c.name}<br><span class="opacity-40">@${c.price.toLocaleString()} x ${c.qty}</span></div><button onclick="tempCart.splice(${i},1);renderSaleList();calculateChange()" class="text-red-500 font-bold px-2">×</button></div>`).join('');
             document.getElementById('displayTotal').innerText = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0).toLocaleString();
         }
-        function finalProcess(m) {
-            const tot = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0); if(tot === 0) return alert("Kosong!");
-            window.activeTrx = { type:m, date: new Date().toLocaleString('id-ID'), tot, items:[...tempCart] };
-            document.getElementById('receipt-content').innerHTML = `<div style="text-align:center;"><b>${config.nama}</b></div><div class="full-line"></div>` + window.activeTrx.items.map(it => `<div class="flex justify-between"><span>${it.name}</span><span>${(it.price*it.qty).toLocaleString()}</span></div>`).join('') + `<div class="full-line"></div><b>TOTAL: Rp ${tot.toLocaleString()}</b>`;
-            document.getElementById('preview-modal').style.display = 'flex';
+        function renderInventory(mode) {
+            const container = document.getElementById('inventoryStatus');
+            container.innerHTML = inventory.map((it, i) => {
+                const awal = it.qty + (it.sold || 0);
+                return `<div class="bg-white p-4 rounded-xl border flex justify-between shadow-sm items-center"><div class="text-[10px] font-bold uppercase">${it.name}<br><span class="font-normal opacity-40">${awal} | ${it.qty} (Laku ${it.sold})</span></div><div class="text-right font-black text-blue-600 text-xs">Rp ${(it.sold*it.price).toLocaleString()}</div></div>`;
+            }).join('');
+        }
+        function saveInv() { localStorage.setItem('v41_stok', JSON.stringify(inventory)); updateDropdown(); }
+        function confirmAction() {
+            window.activeTrx.items.forEach(it => { const inv = inventory.find(i=>i.name===it.name); inv.qty -= it.qty; inv.sold = (inv.sold || 0) + it.qty; });
+            historyTrx.unshift(window.activeTrx); localStorage.setItem('v41_stok', JSON.stringify(inventory)); localStorage.setItem('v41_hist', JSON.stringify(historyTrx));
+            location.reload();
         }
         function addToQueue() {
             const n = document.getElementById('restockName').value, p = parseInt(document.getElementById('restockPrice').value), q = parseInt(document.getElementById('restockQty').value);
@@ -247,9 +305,8 @@
         function processQueue() { restockQueue.forEach(it => { const ex = inventory.find(i=>i.name===it.name); if(ex) { ex.qty += it.qty; ex.price = it.price; } else { inventory.push({name:it.name, price:it.price, qty:it.qty, sold:0}); } }); saveInv(); location.reload(); }
         function resetAuditOnly() { if(confirm("Nolkan data laku?")) { inventory = inventory.map(it => ({ ...it, sold: 0 })); saveInv(); renderInventory('audit'); } }
         function updateDropdown() { const s = document.getElementById('prodSelect'); s.innerHTML = '<option value="">-- PILIH BARANG --</option>'; inventory.forEach((it, i) => s.innerHTML += `<option value="${i}">${it.name} (${it.qty})</option>`); }
-        function renderHistory() { document.getElementById('historyList').innerHTML = historyTrx.map((t, i) => `<div class="bg-white p-4 rounded-xl border flex justify-between items-center mb-2 shadow-sm"><div class="text-[10px] font-bold uppercase">NOTA ${i+1}<br>Rp ${t.tot.toLocaleString()}</div><button onclick="reprint(${i})" class="bg-blue-600 text-white px-3 py-2 rounded-lg text-[10px]">CETAK</button></div>`).join(''); }
+        function renderHistory() { document.getElementById('historyList').innerHTML = historyTrx.map((t, i) => `<div class="bg-white p-4 rounded-xl border flex justify-between items-center mb-2 shadow-sm"><div class="text-[10px] font-bold uppercase">NOTA ${i+1}<br>Rp ${t.total.toLocaleString()}</div><button onclick="reprint(${i})" class="bg-blue-600 text-white px-3 py-2 rounded-lg text-[10px]">CETAK</button></div>`).join(''); }
         function reprint(i) { window.activeTrx = {...historyTrx[i]}; finalProcess('REPRINT'); }
-        function resetAllData() { if(confirm("Hapus semua?")) { localStorage.clear(); location.reload(); } }
         function closePreview() { document.getElementById('preview-modal').style.display = 'none'; }
         init();
     </script>
