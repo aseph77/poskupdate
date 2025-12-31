@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kasir Pro V39.3</title>
+    <title>Kasir Pro V39.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body { background-color: #f1f5f9; font-family: sans-serif; padding-bottom: 120px; }
@@ -16,10 +15,6 @@
         .tab-active { border-bottom: 4px solid #1e40af; color: #1e40af; font-weight: 900; }
         #preview-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: none; flex-direction: column; align-items: center; padding: 15px; overflow-y: auto; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #e2e8f0; z-index: 50; }
-        
-        /* CSS Signature Preview */
-        .sig-container { display: flex; justify-content: space-between; margin-top: 30px; text-align: center; font-size: 11px; }
-        .sig-box { width: 45%; border-top: 1px solid black; margin-top: 40px; padding-top: 5px; }
     </style>
 </head>
 <body>
@@ -27,13 +22,13 @@
     <div id="preview-modal">
         <div id="receipt-canvas" class="shadow-2xl"><div class="receipt-inner" id="receipt-content"></div></div>
         <div class="grid grid-cols-1 gap-3 w-full max-w-xs mt-6">
-            <button onclick="printBluetooth()" class="bg-blue-600 text-white py-5 rounded-2xl font-black text-sm uppercase shadow-lg">🖨️ CETAK SEKARANG (80mm)</button>
+            <button onclick="printBluetooth()" class="bg-blue-600 text-white py-5 rounded-2xl font-black text-sm uppercase shadow-lg">🖨️ CETAK SEKARANG</button>
             <button onclick="closePreview()" class="bg-red-600 text-white py-4 rounded-2xl font-black text-xs uppercase">Tutup</button>
         </div>
     </div>
 
     <div class="bg-slate-900 text-white p-5 flex justify-between items-center sticky top-0 z-40">
-        <div><h1 id="shopNameDisplay" class="font-black text-lg uppercase">KASIR PRO</h1><p class="text-[9px] opacity-60 uppercase">Signature Audit 39.3</p></div>
+        <div><h1 id="shopNameDisplay" class="font-black text-lg uppercase">KASIR PRO</h1><p class="text-[9px] opacity-60 uppercase">Price Update V39.5</p></div>
         <button onclick="toggleSettings()" class="bg-slate-800 p-3 rounded-xl">⚙️</button>
     </div>
 
@@ -61,10 +56,15 @@
         <div id="sec-retur" class="hidden space-y-4">
             <div class="flex gap-2">
                 <button onclick="renderInventory('audit')" class="flex-1 bg-slate-900 text-white py-3 rounded-xl text-[10px] font-bold uppercase">Laporan Audit</button>
-                <button onclick="renderInventory('manage')" class="flex-1 bg-blue-100 text-blue-700 py-3 rounded-xl text-[10px] font-bold uppercase">Kelola Data</button>
+                <button onclick="renderInventory('manage')" class="flex-1 bg-blue-100 text-blue-700 py-3 rounded-xl text-[10px] font-bold uppercase">Update Harga/Stok</button>
             </div>
+            
             <div id="inventoryStatus" class="space-y-2"></div>
-            <button onclick="prepareStockReport()" class="w-full bg-orange-500 text-white py-5 rounded-2xl font-black uppercase shadow-lg">🖨️ CETAK LAPORAN AUDIT</button>
+            
+            <div class="grid grid-cols-2 gap-2 mt-4">
+                <button onclick="prepareStockReport()" class="bg-orange-500 text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-md">🖨️ Cetak Audit</button>
+                <button onclick="resetAuditOnly()" class="bg-red-100 text-red-600 py-4 rounded-2xl font-black text-[10px] uppercase border border-red-200">🧹 Reset Audit</button>
+            </div>
         </div>
 
         <div id="sec-ambil" class="hidden space-y-4">
@@ -76,29 +76,21 @@
                 </div>
                 <button onclick="addToQueue()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase">+ KE LIST</button>
             </div>
-            <div id="queueList" class="bg-white p-4 rounded-3xl border min-h-[50px] space-y-2 font-mono text-xs"></div>
+            <div id="queueList" class="bg-white p-4 rounded-3xl border min-h-[50px] space-y-2"></div>
             <button id="btnConfirmRestock" onclick="processQueue()" class="hidden w-full bg-emerald-700 text-white py-5 rounded-2xl font-black uppercase shadow-xl">SIMPAN & PRINT FAKTUR</button>
         </div>
 
         <div id="sec-laporan" class="hidden space-y-3">
             <div id="historyList"></div>
-            <button onclick="resetAllData()" class="w-full mt-10 text-red-500 text-[10px] uppercase font-bold py-4">FORMAT DATABASE</button>
+            <button onclick="resetAllData()" class="w-full mt-10 text-red-500 text-[10px] uppercase font-bold py-4 opacity-30">Format Seluruh Database</button>
         </div>
     </div>
 
     <div class="bottom-nav">
         <button onclick="switchTab('kasir')" id="t-kasir" class="flex-1 py-5 text-[10px] font-black tab-active">KASIR</button>
         <button onclick="switchTab('retur')" id="t-retur" class="flex-1 py-5 text-[10px] font-black">STOK</button>
-        <button onclick="switchTab('ambil')" id="t-ambil" class="flex-1 py-5 text-[10px] font-black text-emerald-600">MASUK</button>
-        <button onclick="switchTab('laporan')" id="t-laporan" class="flex-1 py-5 text-[10px] font-black text-blue-600">RIWAYAT</button>
-    </div>
-
-    <div id="modal-settings" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-6">
-        <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-3">
-            <input type="text" id="cfgNama" placeholder="NAMA TOKO" class="w-full border p-3 rounded-xl uppercase font-bold text-center">
-            <input type="text" id="cfgHp" placeholder="NO HP" class="w-full border p-3 rounded-xl text-center">
-            <button onclick="saveConfig(); toggleSettings()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase mt-4">SIMPAN</button>
-        </div>
+        <button onclick="switchTab('ambil')" id="t-ambil" class="flex-1 py-5 text-[10px] font-black">MASUK</button>
+        <button onclick="switchTab('laporan')" id="t-laporan" class="flex-1 py-5 text-[10px] font-black">RIWAYAT</button>
     </div>
 
     <script>
@@ -107,16 +99,8 @@
         let historyTrx = JSON.parse(localStorage.getItem('v39_hist')) || [];
         let tempCart = [], restockQueue = [];
 
-        function init() { 
-            document.getElementById('cfgNama').value = config.nama;
-            document.getElementById('cfgHp').value = config.hp;
-            updateUI(); updateDropdown(); 
-        }
-        function saveConfig() {
-            config.nama = document.getElementById('cfgNama').value.toUpperCase();
-            config.hp = document.getElementById('cfgHp').value;
-            localStorage.setItem('v39_conf', JSON.stringify(config)); updateUI();
-        }
+        function init() { updateUI(); updateDropdown(); }
+        function saveInv() { localStorage.setItem('v39_stok', JSON.stringify(inventory)); updateDropdown(); }
         function updateUI() { document.getElementById('shopNameDisplay').innerText = config.nama; }
         
         function switchTab(t) {
@@ -128,149 +112,137 @@
             if(t==='laporan') renderHistory();
         }
 
-        // --- STOK LOGIC ---
+        // --- MANAGE INVENTORY (STOK & HARGA) ---
         function renderInventory(mode) {
             const container = document.getElementById('inventoryStatus');
             container.innerHTML = inventory.map((it, i) => {
-                const awal = it.qty + (it.sold || 0);
-                if (mode === 'audit') return `<div class="bg-white p-4 rounded-2xl border flex justify-between shadow-sm"><div class="text-xs"><b>${it.name}</b><br><small>Awal: ${awal} | Sisa: ${it.qty}</small></div><b class="text-blue-600">Laku: ${it.sold}</b></div>`;
-                return `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm"><input type="text" onchange="inventory[${i}].name=this.value.toUpperCase();saveInv()" value="${it.name}" class="w-1/2 text-xs outline-none border-b font-bold"><input type="number" onchange="inventory[${i}].qty=parseInt(this.value);saveInv()" value="${it.qty}" class="w-16 border rounded text-center text-xs"><button onclick="inventory.splice(${i},1);saveInv();renderInventory('manage')" class="text-red-500 font-bold">×</button></div>`;
+                if (mode === 'audit') {
+                    const awal = it.qty + (it.sold || 0);
+                    return `<div class="bg-white p-4 rounded-2xl border flex justify-between shadow-sm"><div class="text-xs"><b>${it.name}</b><br><small>Sisa: ${it.qty} | Laku: ${it.sold}</small></div><b class="text-blue-600 text-xs">Rp ${it.price.toLocaleString()}</b></div>`;
+                } else {
+                    return `
+                    <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
+                        <div class="flex justify-between items-center">
+                            <input type="text" onchange="inventory[${i}].name=this.value.toUpperCase();saveInv()" value="${it.name}" class="w-2/3 text-xs font-bold outline-none border-b uppercase">
+                            <button onclick="inventory.splice(${i},1);saveInv();renderInventory('manage')" class="text-red-500 font-bold text-xs">Hapus</button>
+                        </div>
+                        <div class="flex gap-2">
+                            <div class="flex-1">
+                                <label class="text-[8px] uppercase opacity-50 block">Harga Jual (Rp)</label>
+                                <input type="number" onchange="inventory[${i}].price=parseInt(this.value);saveInv()" value="${it.price}" class="w-full text-xs font-bold text-blue-600 bg-slate-50 p-2 rounded-lg border">
+                            </div>
+                            <div class="w-20">
+                                <label class="text-[8px] uppercase opacity-50 block">Stok Sisa</label>
+                                <input type="number" onchange="inventory[${i}].qty=parseInt(this.value);saveInv()" value="${it.qty}" class="w-full text-xs font-bold text-center bg-slate-50 p-2 rounded-lg border">
+                            </div>
+                        </div>
+                    </div>`;
+                }
             }).join('') || "<p class='text-center py-10 opacity-20 italic'>Data Kosong</p>";
         }
-        function saveInv() { localStorage.setItem('v39_stok', JSON.stringify(inventory)); updateDropdown(); }
 
-        // --- BLUETOOTH STABLE (80mm) ---
+        function resetAuditOnly() {
+            if(confirm("Nolkan angka Terjual & Omzet?")) {
+                inventory = inventory.map(it => ({ ...it, sold: 0 }));
+                saveInv(); renderInventory('audit');
+                alert("Audit dibersihkan!");
+            }
+        }
+
+        // --- BLUETOOTH CORE & OTHERS (SAMA DENGAN V39.4) ---
         async function printBluetooth() {
             const trx = window.activeTrx;
             const CHUNK_SIZE = 20;
             try {
-                const device = await navigator.bluetooth.requestDevice({ filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }], optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] });
+                const device = await navigator.bluetooth.requestDevice({ filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }] });
                 const server = await device.gatt.connect();
                 const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
                 const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-
                 const pad = (s, l, a='left') => { s=s.toString(); return a==='left' ? s.padEnd(l) : s.padStart(l); };
-                
-                let c = '\x1b\x40\x1b\x61\x01\x1b\x21\x30' + config.nama + '\n' +
-                        '\x1b\x21\x00HP: ' + config.hp + '\n' +
-                        '------------------------------------------------\n' +
-                        trx.type + '\n' +
-                        '------------------------------------------------\n\x1b\x61\x00';
+                let c = '\x1b\x40\x1b\x61\x01\x1b\x21\x30' + config.nama + '\n' + trx.type + '\n\x1b\x21\x00------------------------------------------------\n\x1b\x61\x00';
                 
                 if(trx.type === "PENJUALAN" || trx.type === "REPRINT") {
-                    c += pad("ITEM & RINCIAN", 32) + pad("SUBTOTAL", 16, 'right') + "\n";
                     trx.items.forEach(it => {
-                        c += pad(it.name.substring(0, 48), 48) + "\n";
-                        c += pad("  @" + it.price.toLocaleString() + " x " + it.qty, 32) + pad((it.price * it.qty).toLocaleString(), 16, 'right') + "\n";
+                        c += pad(it.name.substring(0, 48), 48) + "\n" + pad("  @" + it.price.toLocaleString() + " x " + it.qty, 32) + pad((it.price * it.qty).toLocaleString(), 16, 'right') + "\n";
                     });
-                    c += `------------------------------------------------\n`;
-                    c += pad("GRAND TOTAL", 32) + pad("Rp " + trx.tot.toLocaleString(), 16, 'right') + "\n";
-                    c += pad("TUNAI", 32) + pad(trx.pay.toLocaleString(), 16, 'right') + "\n";
-                    c += pad("KEMBALI", 32) + pad((trx.pay-trx.tot).toLocaleString(), 16, 'right') + "\n";
-                } 
-                else if(trx.type === "LAPORAN AUDIT") {
-                    c += pad("ITEM", 18) + pad("AWL", 6, 'right') + pad("SIS", 6, 'right') + pad("LKU", 6, 'right') + pad("OMZET", 12, 'right') + "\n";
-                    inventory.forEach(it => {
-                        c += pad(it.name.substring(0, 18), 18) + pad(it.qty+it.sold, 6, 'right') + pad(it.qty, 6, 'right') + pad(it.sold, 6, 'right') + pad((it.sold*it.price).toLocaleString(), 12, 'right') + "\n";
-                    });
-                    c += `------------------------------------------------\nTOTAL OMZET: Rp ${trx.total.toLocaleString()}\n\n`;
-                    // Tanda Tangan 2 Kolom (48 Karakter 80mm)
-                    c += pad(" PENGAMBIL BARANG", 24) + pad("PEMILIK/PEGAWAI ", 24, 'right') + "\n\n\n\n";
-                    c += pad("(               )", 24) + pad("(               )", 24, 'right') + "\n";
+                    c += `------------------------------------------------\n` + pad("TOTAL", 32) + pad("Rp " + trx.tot.toLocaleString(), 16, 'right') + "\n";
+                } else if(trx.type === "LAPORAN AUDIT") {
+                    c += pad("ITEM", 18) + pad("SIS", 6, 'right') + pad("LKU", 6, 'right') + pad("OMZET", 12, 'right') + "\n";
+                    inventory.forEach(it => { c += pad(it.name.substring(0, 18), 18) + pad(it.qty, 6, 'right') + pad(it.sold, 6, 'right') + pad((it.sold*it.price).toLocaleString(), 12, 'right') + "\n"; });
+                    c += `------------------------------------------------\nOMZET: Rp ${trx.total.toLocaleString()}\n\n(               )  (               )\n`;
                 }
-                else { // FAKTUR MASUK
-                    c += pad("NAMA BARANG", 32) + pad("JUMLAH", 16, 'right') + "\n";
-                    trx.items.forEach(it => { c += pad(it.name.substring(0, 32), 32) + pad(it.qty + " UNIT", 16, 'right') + "\n"; });
-                }
-
                 c += `\n\x1b\x61\x01` + trx.date + `\n\n\n\n\n\x1b\x6d`;
-
                 const data = new TextEncoder().encode(c);
-                for (let i = 0; i < data.length; i += CHUNK_SIZE) {
-                    await char.writeValue(data.slice(i, i + CHUNK_SIZE));
-                    await new Promise(r => setTimeout(r, 20));
-                }
+                for (let i = 0; i < data.length; i += CHUNK_SIZE) { await char.writeValue(data.slice(i, i + CHUNK_SIZE)); await new Promise(r => setTimeout(r, 20)); }
                 if(trx.type === "PENJUALAN") confirmAction(); else closePreview();
-            } catch (err) { alert("Cek Bluetooth!"); }
+            } catch (err) { alert("Bluetooth Eror"); }
         }
 
-        // --- REPORT PREVIEW ---
         function prepareStockReport() {
             let total = 0;
-            let rows = inventory.map(it => {
-                const sub = (it.sold || 0) * it.price; total += sub;
-                return `<tr><td>${it.name}</td><td align="right">${it.qty+it.sold}</td><td align="right">${it.qty}</td><td align="right">${it.sold}</td><td align="right">${sub.toLocaleString()}</td></tr>`;
-            }).join('');
+            let rows = inventory.map(it => { const sub = (it.sold || 0) * it.price; total += sub; return `<tr><td>${it.name}</td><td align="right">${it.qty}</td><td align="right">${it.sold}</td><td align="right">${sub.toLocaleString()}</td></tr>`; }).join('');
             window.activeTrx = { type: "LAPORAN AUDIT", date: new Date().toLocaleString('id-ID'), total };
-            document.getElementById('receipt-content').innerHTML = `
-                <div style="text-align:center;"><b style="font-size:18px;">${config.nama}</b><br>LAPORAN AUDIT STOK & OMZET</div>
-                <div class="full-line"></div>
-                <table class="table-pro w-full"><thead><tr><th align="left">ITEM</th><th>AWL</th><th>SIS</th><th>LKU</th><th align="right">OMZ</th></tr></thead><tbody>${rows}</tbody></table>
-                <div class="full-line"></div>
-                <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:16px;"><span>TOTAL</span><span>Rp ${total.toLocaleString()}</span></div>
-                <div class="sig-container">
-                    <div>PENGAMBIL BARANG<div class="sig-box"></div></div>
-                    <div>PEMILIK/PEGAWAI<div class="sig-box"></div></div>
-                </div>
-                <div class="full-line" style="margin-top:20px;"></div><div style="text-align:center; font-size:10px;">${window.activeTrx.date}</div>
-            `;
+            document.getElementById('receipt-content').innerHTML = `<div style="text-align:center;"><b>${config.nama}</b><br>LAPORAN AUDIT</div><div class="full-line"></div><table class="table-pro w-full">${rows}</table><div class="full-line"></div><b>TOTAL: Rp ${total.toLocaleString()}</b>`;
             document.getElementById('preview-modal').style.display = 'flex';
         }
 
-        // --- UTILS ---
-        function addSaleItem() {
-            const i = document.getElementById('prodSelect').value; if(i==="") return;
-            const q = parseInt(document.getElementById('saleQty').value) || 1;
-            const it = inventory[i];
-            if(q > it.qty) return alert("Stok Habis!");
-            const ex = tempCart.find(c => c.name === it.name);
-            if(ex) ex.qty += q; else tempCart.push({name: it.name, price: it.price, qty: q});
-            renderSaleList();
-        }
-        function renderSaleList() {
-            document.getElementById('saleList').innerHTML = tempCart.map((c, i) => `<div class="flex justify-between items-center bg-white p-3 rounded-xl border shadow-sm"><div class="text-xs font-bold uppercase">${c.name}<br><span class="opacity-50 font-normal">@${c.price.toLocaleString()} x ${c.qty}</span></div><button onclick="tempCart.splice(${i},1);renderSaleList()" class="text-red-500 font-bold px-2">×</button></div>`).join('');
-            document.getElementById('displayTotal').innerText = tempCart.reduce((a,b)=> a+(b.price*b.qty), 0).toLocaleString();
-        }
-        function calculateChange() {
-            const tot = tempCart.reduce((a,b)=> a+(b.price*b.qty), 0);
-            const pay = parseInt(document.getElementById('salePay').value) || 0;
-            document.getElementById('displayChange').innerText = "KEMBALI: Rp " + (pay-tot > 0 ? (pay-tot).toLocaleString() : 0);
-        }
         function finalProcess(m) {
             const tot = tempCart.reduce((a,b)=> a+(b.price*b.qty), 0);
             const pay = parseInt(document.getElementById('salePay').value) || 0;
-            if(tot === 0 || pay < tot) return alert("Cek Keranjang/Pembayaran!");
-            window.activeTrx = { type:m, date: new Date().toLocaleString('id-ID'), id: 'INV'+Date.now().toString().slice(-6), tot, pay, change:pay-tot, items:[...tempCart] };
-            let rows = window.activeTrx.items.map(it => `<div class="mb-2"><div class="font-bold text-xs">${it.name}</div><div class="flex justify-between text-[11px]"><span>@${it.price.toLocaleString()} x ${it.qty}</span><span>${(it.price*it.qty).toLocaleString()}</span></div></div>`).join('');
-            document.getElementById('receipt-content').innerHTML = `<div style="text-align:center;"><b style="font-size:22px;">${config.nama}</b><br>HP: ${config.hp}</div><div class="full-line"></div>${rows}<div class="full-line"></div><div style="font-size:14px; font-weight:bold;">TOTAL: Rp ${window.activeTrx.tot.toLocaleString()}</div><div style="font-size:12px;">TUNAI: ${window.activeTrx.pay.toLocaleString()} | KEMBALI: ${window.activeTrx.change.toLocaleString()}</div><div class="full-line"></div><div style="text-align:center;">TERIMA KASIH</div>`;
+            if(tot === 0 || pay < tot) return alert("Cek Keranjang!");
+            window.activeTrx = { type:m, date: new Date().toLocaleString('id-ID'), id: 'INV'+Date.now().toString().slice(-6), tot, pay, items:[...tempCart] };
+            let rows = window.activeTrx.items.map(it => `<div class="mb-2"><div class="font-bold text-xs">${it.name}</div><div class="flex justify-between text-[10px]"><span>@${it.price.toLocaleString()} x ${it.qty}</span><span>${(it.price*it.qty).toLocaleString()}</span></div></div>`).join('');
+            document.getElementById('receipt-content').innerHTML = `<div style="text-align:center;"><b>${config.nama}</b></div><div class="full-line"></div>${rows}<div class="full-line"></div><b>TOTAL: Rp ${window.activeTrx.tot.toLocaleString()}</b>`;
             document.getElementById('preview-modal').style.display = 'flex';
         }
+
         function confirmAction() {
             window.activeTrx.items.forEach(it => { const inv = inventory.find(i=>i.name===it.name); inv.qty -= it.qty; inv.sold = (inv.sold || 0) + it.qty; });
             historyTrx.unshift(window.activeTrx); localStorage.setItem('v39_stok', JSON.stringify(inventory)); localStorage.setItem('v39_hist', JSON.stringify(historyTrx));
             location.reload();
         }
+
+        function addSaleItem() {
+            const i = document.getElementById('prodSelect').value; if(i==="") return;
+            const q = parseInt(document.getElementById('saleQty').value) || 1;
+            const it = inventory[i];
+            if(q > it.qty) return alert("Stok kurang!");
+            const ex = tempCart.find(c => c.name === it.name);
+            if(ex) ex.qty += q; else tempCart.push({name: it.name, price: it.price, qty: q});
+            renderSaleList();
+        }
+
+        function renderSaleList() {
+            document.getElementById('saleList').innerHTML = tempCart.map((c, i) => `<div class="flex justify-between items-center bg-white p-3 rounded-xl border shadow-sm"><div class="text-xs font-bold uppercase">${c.name}<br><span class="opacity-50">@${c.price.toLocaleString()} x ${c.qty}</span></div><button onclick="tempCart.splice(${i},1);renderSaleList()" class="text-red-500 font-bold px-2">×</button></div>`).join('');
+            document.getElementById('displayTotal').innerText = tempCart.reduce((a,b)=> a+(b.price*b.qty), 0).toLocaleString();
+        }
+
+        function calculateChange() {
+            const tot = tempCart.reduce((a,b)=> a+(b.price*b.qty), 0);
+            const pay = parseInt(document.getElementById('salePay').value) || 0;
+            document.getElementById('displayChange').innerText = "KEMBALI: Rp " + (pay-tot > 0 ? (pay-tot).toLocaleString() : 0);
+        }
+
         function addToQueue() {
             const n = document.getElementById('restockName').value, p = parseInt(document.getElementById('restockPrice').value), q = parseInt(document.getElementById('restockQty').value);
             if(!n || !p || !q) return;
             restockQueue.push({name: n.toUpperCase(), price: p, qty: q});
-            document.getElementById('queueList').innerHTML = restockQueue.map(it => `<div>${it.name} (${it.qty})</div>`).join('');
+            document.getElementById('queueList').innerHTML = restockQueue.map(it => `<div class="p-2 border-b text-xs uppercase">${it.name} (${it.qty})</div>`).join('');
             document.getElementById('btnConfirmRestock').classList.remove('hidden');
             document.getElementById('restockName').value=""; document.getElementById('restockQty').value="";
         }
+
         function processQueue() {
-            window.activeTrx = { type: "FAKTUR MASUK", date: new Date().toLocaleString('id-ID'), items: [...restockQueue] };
             restockQueue.forEach(it => { const ex = inventory.find(i=>i.name===it.name); if(ex) { ex.qty += it.qty; ex.price = it.price; } else { inventory.push({name:it.name, price:it.price, qty:it.qty, sold:0}); } });
-            saveInv();
-            document.getElementById('receipt-content').innerHTML = `<div style="text-align:center;"><b>FAKTUR MASUK</b></div><div class="full-line"></div>` + window.activeTrx.items.map(it => `<div class="flex justify-between"><span>${it.name}</span><span>${it.qty} UNIT</span></div>`).join('') + `<div class="full-line"></div>`;
-            document.getElementById('preview-modal').style.display = 'flex';
-            restockQueue = [];
+            saveInv(); alert("Stok Masuk Berhasil!"); location.reload();
         }
+
         function updateDropdown() { const s = document.getElementById('prodSelect'); s.innerHTML = '<option value="">-- PILIH BARANG --</option>'; inventory.forEach((it, i) => s.innerHTML += `<option value="${i}">${it.name} (${it.qty})</option>`); }
         function renderHistory() { document.getElementById('historyList').innerHTML = historyTrx.map((t, i) => `<div class="bg-white p-4 rounded-3xl border flex justify-between items-center mb-2 shadow-sm"><div class="text-[10px]">${t.id}<br><b>Rp ${t.tot.toLocaleString()}</b></div><button onclick="reprint(${i})" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[10px]">Nota</button></div>`).join(''); }
         function reprint(i) { window.activeTrx = {...historyTrx[i]}; finalProcess('REPRINT'); }
         function toggleSettings() { document.getElementById('modal-settings').classList.toggle('hidden'); }
-        function resetAllData() { if(confirm("Reset semua data?")) { localStorage.clear(); location.reload(); } }
+        function saveConfig() { config.nama = document.getElementById('cfgNama').value.toUpperCase(); config.hp = document.getElementById('cfgHp').value; localStorage.setItem('v39_conf', JSON.stringify(config)); updateUI(); }
+        function resetAllData() { if(confirm("Hapus semua?")) { localStorage.clear(); location.reload(); } }
         function closePreview() { document.getElementById('preview-modal').style.display = 'none'; }
         init();
     </script>
