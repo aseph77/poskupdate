@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0f172a">
+    <title>Kasir Pro V38.2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        body { background-color: #f8fafc; font-family: sans-serif; }
+        .tab-active { border-bottom: 4px solid #1e40af; color: #1e40af; font-weight: 900; }
+        #preview-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 9999; display: none;
+            flex-direction: column; align-items: center; justify-content: start;
+            padding: 20px; overflow-y: auto;
+        }
+        #receipt-canvas { 
+            background: white; width: 80mm; padding: 15px; color: black; 
+            font-family: 'Courier New', Courier, monospace; font-size: 12px;
+        }
+        .grid-receipt { display: grid; grid-template-columns: 1fr 60px 30px 70px; gap: 2px; font-size: 10px; }
+        .line { border-top: 1px dashed #000; margin: 5px 0; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #e2e8f0; z-index: 50; }
+    </style>
+</head>
+<body class="pb-28">
+
+    <div id="preview-modal">
+        <div id="receipt-canvas" class="mb-6 shadow-xl"></div>
+        <div class="grid grid-cols-2 gap-3 w-full max-w-xs">
+            <button onclick="confirmAction('jpg')" class="bg-orange-500 text-white py-4 rounded-2xl font-black text-xs">💾 SIMPAN JPG</button>
+            <button onclick="printBluetooth()" class="bg-blue-600 text-white py-4 rounded-2xl font-black text-xs">🖨️ CETAK BT</button>
+            <button onclick="closePreview()" class="bg-red-600 text-white py-4 rounded-2xl font-black text-xs col-span-2">KEMBALI</button>
+        </div>
+        <p class="text-white text-[9px] mt-4 opacity-50 text-center uppercase tracking-widest">Pastikan Bluetooth & GPS HP Aktif</p>
+    </div>
+
+    <div class="bg-slate-900 text-white p-5 flex justify-between items-center sticky top-0 z-40">
+        <div><h1 id="shopNameDisplay" class="font-black text-lg tracking-tight uppercase">KASIR PRO</h1><p id="shopAddrDisplay" class="text-[10px] opacity-60">READY</p></div>
+        <button onclick="toggleSettings()" class="bg-slate-800 p-3 rounded-xl font-bold">⚙️</button>
+    </div>
+
+    <div id="modal-settings" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl">
+            <h2 class="font-black text-center text-slate-800 uppercase">Setting Nota</h2>
+            <input type="text" id="cfgNama" oninput="saveConfig()" placeholder="NAMA TOKO" class="w-full border p-3 rounded-xl uppercase">
+            <input type="text" id="cfgAlamat" oninput="saveConfig()" placeholder="ALAMAT" class="w-full border p-3 rounded-xl uppercase">
+            <input type="text" id="cfgHp" oninput="saveConfig()" placeholder="NO HP" class="w-full border p-3 rounded-xl">
+            <input type="text" id="cfgFooter" oninput="saveConfig()" placeholder="PESAN BAWAH" class="w-full border p-3 rounded-xl uppercase">
+            <button onclick="toggleSettings()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold">SIMPAN</button>
+        </div>
+    </div>
+
+    <div class="max-w-md mx-auto px-4 mt-4" id="main-content">
+        <div id="sec-kasir" class="space-y-4">
+            <div class="bg-white p-5 rounded-3xl shadow-sm border space-y-3">
+                <input type="text" id="custName" placeholder="PELANGGAN (OPSIONAL)" class="w-full bg-slate-50 p-4 rounded-2xl text-sm font-bold uppercase outline-none">
+                <div class="flex gap-2">
+                    <select id="prodSelect" class="flex-1 bg-blue-50 p-4 rounded-2xl font-black text-sm outline-none"></select>
+                    <input type="number" id="saleQty" value="1" class="w-20 bg-slate-50 p-4 rounded-2xl text-center font-black">
+                </div>
+                <button onclick="addSaleItem()" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-black shadow-lg">+ TAMBAH</button>
+            </div>
+            <div id="saleList" class="bg-white p-4 rounded-2xl border min-h-[100px] space-y-2"></div>
+            <div class="bg-slate-900 text-white p-6 rounded-[40px] shadow-2xl space-y-4">
+                <div class="flex justify-between items-center"><span class="text-xs font-bold opacity-50 uppercase tracking-wider">Total</span><span class="text-2xl font-black">Rp <span id="displayTotal">0</span></span></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" id="saleDiscount" oninput="calculateSale()" placeholder="DISKON" class="bg-slate-800 p-4 rounded-2xl text-red-400 font-bold outline-none">
+                    <input type="number" id="salePay" oninput="calculateSale()" placeholder="BAYAR" class="bg-slate-800 p-4 rounded-2xl text-emerald-400 font-bold outline-none">
+                </div>
+                <button onclick="finalProcess('PENJUALAN')" class="w-full bg-blue-600 py-5 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all">BAYAR & CETAK</button>
+            </div>
+        </div>
+        <div id="sec-retur" class="hidden"></div>
+        <div id="sec-ambil" class="hidden"></div>
+        <div id="sec-laporan" class="hidden"></div>
+    </div>
+
+    <div class="bottom-nav">
+        <button onclick="switchTab('kasir')" id="t-kasir" class="flex-1 py-4 text-[10px] font-black tab-active uppercase">🛒 Kasir</button>
+        <button onclick="switchTab('retur')" id="t-retur" class="flex-1 py-4 text-[10px] font-black text-red-600 uppercase">📊 Stok</button>
+        <button onclick="switchTab('ambil')" id="t-ambil" class="flex-1 py-4 text-[10px] font-black text-emerald-600 uppercase">➕ Item</button>
+        <button onclick="switchTab('laporan')" id="t-laporan" class="flex-1 py-4 text-[10px] font-black text-blue-600 uppercase">📜 Riwayat</button>
+    </div>
+
+    <script>
+        // INISIALISASI DATABASE
+        let inventory = JSON.parse(localStorage.getItem('v38_stok')) || [];
+        let soldData = JSON.parse(localStorage.getItem('v38_sold')) || {};
+        let config = JSON.parse(localStorage.getItem('v38_conf')) || { nama: "NAMA TOKO", alamat: "ALAMAT", hp: "08XX", footer: "TERIMA KASIH" };
+        let historyTrx = JSON.parse(localStorage.getItem('v38_hist')) || [];
+        let tempCart = [];
+
+        function init() {
+            document.getElementById('cfgNama').value = config.nama;
+            document.getElementById('cfgAlamat').value = config.alamat;
+            document.getElementById('cfgHp').value = config.hp;
+            document.getElementById('cfgFooter').value = config.footer;
+            updateUI(); updateDropdown();
+        }
+
+        function toggleSettings() { document.getElementById('modal-settings').classList.toggle('hidden'); }
+        function saveConfig() {
+            config = { 
+                nama: document.getElementById('cfgNama').value.toUpperCase(), 
+                alamat: document.getElementById('cfgAlamat').value.toUpperCase(), 
+                hp: document.getElementById('cfgHp').value, 
+                footer: document.getElementById('cfgFooter').value.toUpperCase() 
+            };
+            localStorage.setItem('v38_conf', JSON.stringify(config)); updateUI();
+        }
+        function updateUI() {
+            document.getElementById('shopNameDisplay').innerText = config.nama;
+            document.getElementById('shopAddrDisplay').innerText = config.alamat;
+        }
+
+        // FUNGSI BLUETOOTH PRINTER (VERSI STABIL HTTPS GITHUB)
+        async function printBluetooth() {
+            const trx = window.activeTrx;
+            if(!trx) return alert("Data transaksi tidak ditemukan!");
+
+            try {
+                // Mencari printer (Hanya bekerja di HTTPS)
+                const device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+                });
+
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+                const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+                // ESC/POS Command Generator
+                const encoder = new TextEncoder();
+                let c = '\x1b\x40\x1b\x61\x01'; // Reset & Center
+                c += `\x1b\x21\x30${config.nama}\n`; // Bold + Large
+                c += `\x1b\x21\x00${config.alamat}\nTELP: ${config.hp}\n`;
+                c += '--------------------------------\n';
+                c += '\x1b\x61\x00'; // Left align
+                c += `ID: ${trx.id}\nTGL: ${trx.date}\nPLG: ${trx.cust}\n`;
+                c += '--------------------------------\n';
+                
+                trx.items.forEach(it => {
+                    c += `${it.name.toUpperCase()}\n`;
+                    c += `${it.qty} x ${it.price.toLocaleString()} = ${(it.qty*it.price).toLocaleString()}\n`;
+                });
+                
+                c += '--------------------------------\n';
+                c += `TOTAL: Rp ${trx.tot.toLocaleString()}\n`;
+                if(trx.type === 'PENJUALAN') {
+                    c += `BAYAR: Rp ${trx.pay.toLocaleString()}\nKEMBALI: Rp ${trx.change.toLocaleString()}\n`;
+                }
+                c += '--------------------------------\n';
+                c += '\x1b\x61\x01' + config.footer + '\n\n\n\n\x1d\x56\x00'; // Feed & Cut
+
+                await characteristic.writeValue(encoder.encode(c));
+                alert("Mencetak...");
+                closePreview();
+                if(!trx.isReprint) location.reload();
+
+            } catch (err) {
+                alert("Koneksi Printer Gagal: " + err.message + "\n\nTips: Gunakan Chrome & Aktifkan GPS.");
+            }
+        }
+
+        // LOGIKA KASIR (SEDERHANA)
+        function updateDropdown() {
+            const s = document.getElementById('prodSelect');
+            s.innerHTML = '<option value="">-- PILIH BARANG --</option>';
+            inventory.forEach((it, i) => s.innerHTML += `<option value="${i}">${it.name} (${it.qty})</option>`);
+        }
+        function addSaleItem() {
+            const i = document.getElementById('prodSelect').value; if(i==="") return;
+            const q = parseInt(document.getElementById('saleQty').value);
+            const item = inventory[i];
+            if(q > item.qty) return alert("STOK TIDAK CUKUP!");
+            const ex = tempCart.find(c => c.name === item.name);
+            if(ex) ex.qty += q; else tempCart.push({name: item.name, price: item.price, qty: q});
+            renderSaleList();
+        }
+        function renderSaleList() {
+            document.getElementById('saleList').innerHTML = tempCart.map((c, i) => `
+                <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border-b border-slate-200">
+                    <div><b class="text-xs uppercase">${c.name}</b><br><span class="text-[10px] opacity-40">${c.qty} x ${c.price.toLocaleString()}</span></div>
+                    <div class="flex items-center gap-3"><b class="text-sm font-black">${(c.qty*c.price).toLocaleString()}</b><button onclick="tempCart.splice(${i},1);renderSaleList()" class="text-red-500 font-bold px-2">✖</button></div>
+                </div>
+            `).join('') || "<p class='text-center opacity-20 py-10 italic text-xs'>BELUM ADA ITEM</p>";
+            calculateSale();
+        }
+        function calculateSale() {
+            const sub = tempCart.reduce((a,b)=> a+(b.price*b.qty), 0);
+            const disc = parseInt(document.getElementById('saleDiscount').value) || 0;
+            const pay = parseInt(document.getElementById('salePay').value) || 0;
+            const tot = sub - disc;
+            document.getElementById('displayTotal').innerText = tot.toLocaleString();
+            return {sub, disc, pay, tot, change: pay-tot};
+        }
+
+        function finalProcess(m) {
+            if(tempCart.length === 0) return alert("KERANJANG KOSONG!");
+            const v = calculateSale();
+            if(v.pay < v.tot) return alert("UANG PEMBAYARAN KURANG!");
+            
+            const trx = { 
+                type: m, 
+                date: new Date().toLocaleString('id-ID'), 
+                id: 'INV'+Date.now().toString().slice(-6),
+                ...v, 
+                items: [...tempCart], 
+                cust: document.getElementById('custName').value.toUpperCase() || "UMUM" 
+            };
+            window.activeTrx = trx;
+            showReceipt(trx);
+        }
+
+        function showReceipt(trx) {
+            let itemsHtml = trx.items.map(it => `
+                <div class="grid-receipt">
+                    <span>${it.name.toUpperCase()}</span>
+                    <span style="text-align:right;">${it.price.toLocaleString()}</span>
+                    <span style="text-align:center;">${it.qty}</span>
+                    <span style="text-align:right;">${(it.qty*it.price).toLocaleString()}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('receipt-canvas').innerHTML = `
+                <div style="text-align:center; margin-bottom:10px;">
+                    <b style="font-size:16px;">${config.nama}</b><br>
+                    <span style="font-size:10px;">${config.alamat}<br>TELP: ${config.hp}</span>
+                </div>
+                <div class="line"></div>
+                <div style="font-size:9px; margin-bottom:5px;">ID: ${trx.id} | ${trx.date}<br>PLG: ${trx.cust}</div>
+                <div class="line"></div>
+                <div class="grid-receipt" style="font-weight:bold; margin-bottom:2px;">
+                    <span>ITEM</span><span style="text-align:right;">HRG</span><span style="text-align:center;">QTY</span><span style="text-align:right;">TOT</span>
+                </div>
+                <div class="line"></div>
+                ${itemsHtml}
+                <div class="line"></div>
+                <div style="font-size:10px;">
+                    <div style="display:flex; justify-content:space-between;"><span>SUBTOTAL:</span><span>${trx.sub.toLocaleString()}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>DISKON:</span><span>-${trx.disc.toLocaleString()}</span></div>
+                    <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:12px; margin-top:3px;"><span>TOTAL:</span><span>Rp ${trx.tot.toLocaleString()}</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:3px;"><span>TUNAI:</span><span>${trx.pay.toLocaleString()}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>KEMBALI:</span><span>${trx.change.toLocaleString()}</span></div>
+                </div>
+                <div class="line" style="border-top-style: double; border-top-width: 2px;"></div>
+                <div style="text-align:center; font-size:10px; margin-top:5px;">${config.footer}</div>
+            `;
+            document.getElementById('preview-modal').style.display = 'flex';
+        }
+
+        async function confirmAction(type) {
+            const trx = window.activeTrx;
+            if(!trx.isReprint) {
+                trx.items.forEach(it => {
+                    const inv = inventory.find(i=>i.name===it.name);
+                    inv.qty -= it.qty; soldData[it.name] = (soldData[it.name]||0)+it.qty;
+                });
+                historyTrx.unshift(trx);
+                localStorage.setItem('v38_stok', JSON.stringify(inventory));
+                localStorage.setItem('v38_sold', JSON.stringify(soldData));
+                localStorage.setItem('v38_hist', JSON.stringify(historyTrx));
+            }
+            if(type === 'jpg') {
+                const canvas = await html2canvas(document.getElementById('receipt-canvas'), {scale:3});
+                const l = document.createElement('a'); l.download = trx.id+'.jpg'; l.href = canvas.toDataURL(); l.click();
+            }
+            location.reload();
+        }
+
+        function switchTab(t) {
+            ['sec-kasir','sec-retur','sec-ambil','sec-laporan'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            ['t-kasir','t-retur','t-ambil','t-laporan'].forEach(b => document.getElementById(b).classList.remove('tab-active'));
+            document.getElementById('sec-'+t).classList.remove('hidden');
+            document.getElementById('t-'+t).classList.add('tab-active');
+            window.scrollTo(0,0);
+        }
+
+        function closePreview() { document.getElementById('preview-modal').style.display = 'none'; }
+        init();
+    </script>
+</body>
+</html>
