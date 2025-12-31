@@ -1,0 +1,2 @@
+# poskupdate
+Kasir sederhana
