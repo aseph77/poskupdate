@@ -3,28 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kasir Pro V39.0</title>
+    <title>Kasir Pro V39.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body { background-color: #f1f5f9; font-family: sans-serif; padding-bottom: 120px; }
-        
-        /* 80mm THERMAL OPTIMIZATION */
-        #receipt-canvas { 
-            background: white; width: 80mm; margin: 0 auto;
-            padding: 20px 0; color: black; font-family: 'Courier New', Courier, monospace; 
-        }
+        #receipt-canvas { background: white; width: 80mm; margin: 0 auto; padding: 20px 0; color: black; font-family: 'Courier New', Courier, monospace; }
         .receipt-inner { padding: 0 5mm; font-size: 13px; line-height: 1.4; }
         .full-line { border-top: 1px dashed black; width: 100%; margin: 10px 0; }
-        
         .table-pro { width: 100%; border-collapse: collapse; font-size: 12px; }
         .tab-active { border-bottom: 4px solid #1e40af; color: #1e40af; font-weight: 900; }
-        #preview-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 9999; display: none;
-            flex-direction: column; align-items: center; padding: 15px; overflow-y: auto;
-        }
+        #preview-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: none; flex-direction: column; align-items: center; padding: 15px; overflow-y: auto; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #e2e8f0; z-index: 50; }
     </style>
 </head>
@@ -32,28 +22,26 @@
 
     <div id="preview-modal">
         <div id="receipt-canvas" class="shadow-2xl"><div class="receipt-inner" id="receipt-content"></div></div>
-        <div class="grid grid-cols-2 gap-3 w-full max-w-xs mt-6">
-            <button onclick="confirmAction('jpg')" class="bg-orange-500 text-white py-4 rounded-2xl font-black text-xs uppercase shadow-lg">💾 Gambar</button>
-            <button onclick="printBluetooth()" class="bg-blue-600 text-white py-4 rounded-2xl font-black text-xs uppercase shadow-lg">🖨️ Cetak 80mm</button>
-            <button onclick="closePreview()" class="bg-red-600 text-white py-4 rounded-2xl font-black text-xs col-span-2 uppercase">Tutup</button>
+        <div class="grid grid-cols-1 gap-3 w-full max-w-xs mt-6">
+            <button onclick="printBluetooth()" class="bg-blue-600 text-white py-5 rounded-2xl font-black text-sm uppercase shadow-lg animate-pulse">🚀 HUBUNGKAN & CETAK (80mm)</button>
+            <button onclick="closePreview()" class="bg-red-600 text-white py-4 rounded-2xl font-black text-xs uppercase">Batal</button>
         </div>
     </div>
 
     <div class="bg-slate-900 text-white p-5 flex justify-between items-center sticky top-0 z-40">
-        <div><h1 id="shopNameDisplay" class="font-black text-lg uppercase">KASIR PRO</h1><p id="shopAddrDisplay" class="text-[9px] opacity-60 uppercase">80mm Professional System</p></div>
+        <div><h1 id="shopNameDisplay" class="font-black text-lg uppercase">KASIR PRO</h1><p class="text-[9px] opacity-60 uppercase">Stable Bluetooth 39.1</p></div>
         <button onclick="toggleSettings()" class="bg-slate-800 p-3 rounded-xl">⚙️</button>
     </div>
 
     <div class="max-w-md mx-auto px-4 mt-4">
-        
         <div id="sec-kasir" class="space-y-4">
             <div class="bg-white p-5 rounded-3xl border shadow-sm space-y-3">
-                <input type="text" id="custName" placeholder="NAMA PELANGGAN" class="w-full bg-slate-50 p-4 rounded-2xl font-bold uppercase outline-none">
+                <input type="text" id="custName" placeholder="PELANGGAN" class="w-full bg-slate-50 p-4 rounded-2xl font-bold uppercase outline-none">
                 <div class="flex gap-2">
                     <select id="prodSelect" class="flex-1 bg-blue-50 p-4 rounded-2xl font-black text-sm outline-none"></select>
                     <input type="number" id="saleQty" value="1" class="w-20 bg-slate-50 p-4 rounded-2xl text-center font-black">
                 </div>
-                <button onclick="addSaleItem()" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-black uppercase">Tambah</button>
+                <button onclick="addSaleItem()" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-black uppercase shadow-md">TAMBAH</button>
             </div>
             <div id="saleList" class="bg-white p-4 rounded-2xl border min-h-[50px] space-y-2"></div>
             <div class="bg-slate-900 text-white p-6 rounded-[40px] shadow-2xl space-y-4">
@@ -62,17 +50,17 @@
                     <input type="number" id="salePay" oninput="calculateChange()" placeholder="BAYAR" class="bg-slate-800 p-4 rounded-2xl text-emerald-400 font-bold outline-none">
                     <div class="bg-slate-800 p-4 rounded-2xl text-orange-400 font-bold text-center text-sm"><span id="displayChange">0</span></div>
                 </div>
-                <button onclick="finalProcess('PENJUALAN')" class="w-full bg-blue-600 py-5 rounded-2xl font-black uppercase">Cetak Nota</button>
+                <button onclick="finalProcess('PENJUALAN')" class="w-full bg-blue-600 py-5 rounded-2xl font-black uppercase">PROSES NOTA</button>
             </div>
         </div>
 
         <div id="sec-retur" class="hidden space-y-4">
             <div class="flex gap-2">
-                <button onclick="renderInventory('audit')" class="flex-1 bg-slate-900 text-white py-3 rounded-xl text-[10px] font-bold uppercase">Audit Laporan</button>
-                <button onclick="renderInventory('manage')" class="flex-1 bg-blue-100 text-blue-700 py-3 rounded-xl text-[10px] font-bold uppercase">Kelola Data</button>
+                <button onclick="renderInventory('audit')" class="flex-1 bg-slate-900 text-white py-3 rounded-xl text-[10px] font-bold uppercase">Audit</button>
+                <button onclick="renderInventory('manage')" class="flex-1 bg-blue-100 text-blue-700 py-3 rounded-xl text-[10px] font-bold uppercase">Kelola</button>
             </div>
             <div id="inventoryStatus" class="space-y-2"></div>
-            <button onclick="prepareStockReport()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase">Cetak Audit Omzet (80mm)</button>
+            <button onclick="prepareStockReport()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase">PRINT LAPORAN (80mm)</button>
         </div>
 
         <div id="sec-ambil" class="hidden space-y-4">
@@ -82,17 +70,16 @@
                     <input type="number" id="restockPrice" placeholder="HRG JUAL" class="flex-1 p-4 rounded-2xl font-black text-slate-900">
                     <input type="number" id="restockQty" placeholder="QTY" class="w-24 p-4 rounded-2xl font-black text-slate-900">
                 </div>
-                <button onclick="addToQueue()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase">+ Tambah Daftar</button>
+                <button onclick="addToQueue()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase">+ KE LIST</button>
             </div>
             <div id="queueList" class="bg-white p-4 rounded-3xl border min-h-[50px] space-y-2"></div>
-            <button id="btnConfirmRestock" onclick="processQueue()" class="hidden w-full bg-emerald-700 text-white py-5 rounded-2xl font-black uppercase shadow-xl">Simpan & Cetak Faktur</button>
+            <button id="btnConfirmRestock" onclick="processQueue()" class="hidden w-full bg-emerald-700 text-white py-5 rounded-2xl font-black uppercase">SIMPAN & CETAK FAKTUR</button>
         </div>
 
         <div id="sec-laporan" class="hidden space-y-3">
             <div id="historyList"></div>
-            <button onclick="resetAllData()" class="w-full mt-10 text-red-400 text-[10px] uppercase font-bold py-4">Format Database</button>
+            <button onclick="resetAllData()" class="w-full mt-10 text-red-500 text-[10px] uppercase font-bold py-4 opacity-50">RESET DATA</button>
         </div>
-
     </div>
 
     <div class="bottom-nav">
@@ -106,24 +93,28 @@
         <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-3">
             <input type="text" id="cfgNama" oninput="saveConfig()" placeholder="NAMA TOKO" class="w-full border p-3 rounded-xl uppercase font-bold text-center">
             <input type="text" id="cfgHp" oninput="saveConfig()" placeholder="NO HP" class="w-full border p-3 rounded-xl text-center">
-            <button onclick="toggleSettings()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase mt-4">Simpan</button>
+            <button onclick="toggleSettings()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase mt-4">SIMPAN</button>
         </div>
     </div>
 
     <script>
+        // --- CORE LOGIC & DB ---
         let inventory = JSON.parse(localStorage.getItem('v39_stok')) || [];
-        let config = JSON.parse(localStorage.getItem('v39_conf')) || { nama: "KASIR PRO", alamat: "ALAMAT", hp: "08XX", footer: "TERIMA KASIH" };
+        let config = JSON.parse(localStorage.getItem('v39_conf')) || { nama: "KASIR PRO", hp: "08XX" };
         let historyTrx = JSON.parse(localStorage.getItem('v39_hist')) || [];
         let tempCart = [], restockQueue = [];
 
-        function init() { updateUI(); updateDropdown(); }
+        function init() { 
+            document.getElementById('cfgNama').value = config.nama;
+            document.getElementById('cfgHp').value = config.hp;
+            updateUI(); updateDropdown(); 
+        }
         function toggleSettings() { document.getElementById('modal-settings').classList.toggle('hidden'); }
         function saveConfig() {
             config = { ...config, nama: document.getElementById('cfgNama').value.toUpperCase(), hp: document.getElementById('cfgHp').value };
             localStorage.setItem('v39_conf', JSON.stringify(config)); updateUI();
         }
         function updateUI() { document.getElementById('shopNameDisplay').innerText = config.nama; }
-
         function switchTab(t) {
             ['sec-kasir','sec-retur','sec-ambil','sec-laporan'].forEach(s => document.getElementById(s).classList.add('hidden'));
             ['t-kasir','t-retur','t-ambil','t-laporan'].forEach(b => document.getElementById(b).classList.remove('tab-active'));
@@ -133,121 +124,166 @@
             if(t==='laporan') renderHistory();
         }
 
-        // KELOLA STOK (EDIT / HAPUS)
+        // --- STOK MANAGEMENT ---
         function renderInventory(mode) {
             const container = document.getElementById('inventoryStatus');
             container.innerHTML = inventory.map((it, i) => {
                 const awal = it.qty + (it.sold || 0);
                 if (mode === 'audit') {
-                    return `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center">
+                    return `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm">
                         <div><b class="text-xs uppercase">${it.name}</b><br><span class="text-[9px] opacity-50">${awal} - ${it.qty} = ${it.sold} Laku</span></div>
                         <b class="text-blue-600 text-xs">Rp ${(it.sold * it.price).toLocaleString()}</b>
                     </div>`;
                 } else {
-                    return `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center">
-                        <div><input type="text" onchange="updateItemName(${i}, this.value)" value="${it.name}" class="text-xs font-bold uppercase border-b outline-none"></div>
+                    return `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm">
+                        <input type="text" onchange="updateItemName(${i}, this.value)" value="${it.name}" class="text-xs font-bold uppercase border-b w-1/2 outline-none">
                         <div class="flex gap-2">
-                            <input type="number" onchange="updateItemQty(${i}, this.value)" value="${it.qty}" class="w-12 text-center text-xs border rounded">
-                            <button onclick="deleteItem(${i})" class="text-red-500 font-bold px-2">Hapus</button>
+                            <input type="number" onchange="updateItemQty(${i}, this.value)" value="${it.qty}" class="w-16 text-center text-xs border rounded p-1">
+                            <button onclick="deleteItem(${i})" class="text-red-500 text-xs font-bold">Hapus</button>
                         </div>
                     </div>`;
                 }
             }).join('') || "<p class='text-center py-10 opacity-20'>DATA KOSONG</p>";
         }
 
-        function updateItemName(i, val) { inventory[i].name = val.toUpperCase(); saveInv(); }
-        function updateItemQty(i, val) { inventory[i].qty = parseInt(val); saveInv(); }
-        function deleteItem(i) { if(confirm("Hapus barang?")) { inventory.splice(i, 1); saveInv(); renderInventory('manage'); } }
+        function updateItemName(i, v) { inventory[i].name = v.toUpperCase(); saveInv(); }
+        function updateItemQty(i, v) { inventory[i].qty = parseInt(v) || 0; saveInv(); }
+        function deleteItem(i) { if(confirm("Hapus?")) { inventory.splice(i,1); saveInv(); renderInventory('manage'); } }
         function saveInv() { localStorage.setItem('v39_stok', JSON.stringify(inventory)); updateDropdown(); }
 
-        // ALIGNMENT 80MM (48 CHARS)
-        function pad(str, length, align = 'left') {
-            str = str.toString();
-            if (str.length > length) return str.substring(0, length);
-            return align === 'left' ? str.padEnd(length) : str.padStart(length);
-        }
-
+        // --- KASIR LOGIC ---
         function updateDropdown() {
             const s = document.getElementById('prodSelect');
             s.innerHTML = '<option value="">-- PILIH BARANG --</option>';
             inventory.forEach((it, i) => s.innerHTML += `<option value="${i}">${it.name} (${it.qty})</option>`);
         }
-
-        function calculateChange() {
-            const tot = tempCart.reduce((a,b)=> a+(b.price*b.qty), 0);
-            const pay = parseInt(document.getElementById('salePay').value) || 0;
-            const change = pay - tot;
-            document.getElementById('displayChange').innerText = "KEMBALI: Rp " + change.toLocaleString();
-            return {tot, pay, change};
-        }
-
         function addSaleItem() {
             const i = document.getElementById('prodSelect').value; if(i==="") return;
             const q = parseInt(document.getElementById('saleQty').value) || 1;
             const it = inventory[i];
-            if(q > it.qty) return alert("Stok Kurang!");
+            if(q > it.qty) return alert("Stok tidak cukup!");
             const ex = tempCart.find(c => c.name === it.name);
             if(ex) ex.qty += q; else tempCart.push({name: it.name, price: it.price, qty: q});
             renderSaleList();
         }
-
         function renderSaleList() {
             document.getElementById('saleList').innerHTML = tempCart.map((c, i) => `
                 <div class="flex justify-between items-center bg-white p-3 rounded-xl border">
                     <span class="text-xs font-bold uppercase">${c.name} (${c.qty})</span>
-                    <button onclick="tempCart.splice(${i},1);renderSaleList()" class="text-red-500 font-bold px-2 text-xl">×</button>
+                    <button onclick="tempCart.splice(${i},1);renderSaleList()" class="text-red-500 font-bold px-2">×</button>
                 </div>`).join('');
             document.getElementById('displayTotal').innerText = tempCart.reduce((a,b)=> a+(b.price*b.qty), 0).toLocaleString();
             calculateChange();
         }
+        function calculateChange() {
+            const tot = tempCart.reduce((a,b)=> a+(b.price*b.qty), 0);
+            const pay = parseInt(document.getElementById('salePay').value) || 0;
+            const change = pay - tot;
+            document.getElementById('displayChange').innerText = "KEMBALI: Rp " + (change > 0 ? change.toLocaleString() : 0);
+            return {tot, pay, change};
+        }
 
-        // PRINT 80MM (48 CHARACTERS)
+        // --- BLUETOOTH REPAIR CORE (STABLE MODE) ---
         async function printBluetooth() {
             const trx = window.activeTrx;
+            const CHUNK_SIZE = 20; // Mengirim data per 20 karakter untuk menghindari Buffer Overflow
+
             try {
-                const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] });
+                // 1. Request Device
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
+                    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+                });
+
+                // 2. Connect
                 const server = await device.gatt.connect();
                 const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
                 const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+                // 3. Prepare Data (ESC/POS) - 80mm / 48 chars
+                const pad = (s, l, a='left') => { s=s.toString(); return a==='left' ? s.padEnd(l) : s.padStart(l); };
                 
-                let c = '\x1b\x40\x1b\x61\x01\x1b\x21\x30' + config.nama + '\n\x1b\x21\x00HP: ' + config.hp + '\n------------------------------------------------\n' + trx.type + '\n------------------------------------------------\n\x1b\x61\x00';
+                let c = '\x1b\x40\x1b\x61\x01\x1b\x21\x30' + config.nama + '\n' +
+                        '\x1b\x21\x00HP: ' + config.hp + '\n' +
+                        '------------------------------------------------\n' +
+                        trx.type + '\n' +
+                        '------------------------------------------------\n\x1b\x61\x00';
                 
                 if(trx.type === "PENJUALAN") {
-                    c += pad("NAMA ITEM", 24) + pad("QTY", 8, 'right') + pad("TOTAL", 16, 'right') + "\n";
+                    c += pad("ITEM", 24) + pad("QTY", 8, 'right') + pad("TOTAL", 16, 'right') + "\n";
                     trx.items.forEach(it => {
                         c += pad(it.name.substring(0, 24), 24) + pad(it.qty, 8, 'right') + pad((it.price*it.qty).toLocaleString(), 16, 'right') + "\n";
                     });
                     c += `------------------------------------------------\n`;
-                    c += pad("GRAND TOTAL", 32) + pad("Rp " + trx.tot.toLocaleString(), 16, 'right') + "\n";
+                    c += pad("TOTAL", 32) + pad(trx.tot.toLocaleString(), 16, 'right') + "\n";
                     c += pad("TUNAI", 32) + pad(trx.pay.toLocaleString(), 16, 'right') + "\n";
-                    c += pad("KEMBALIAN", 32) + pad(trx.change.toLocaleString(), 16, 'right') + "\n";
+                    c += pad("KEMBALI", 32) + pad(trx.change.toLocaleString(), 16, 'right') + "\n";
                 } else if(trx.type === "LAPORAN AUDIT") {
                     c += pad("ITEM", 18) + pad("AWL", 6, 'right') + pad("SIS", 6, 'right') + pad("LKU", 6, 'right') + pad("OMZET", 12, 'right') + "\n";
                     inventory.forEach(it => {
                         c += pad(it.name.substring(0, 18), 18) + pad(it.qty+it.sold, 6, 'right') + pad(it.qty, 6, 'right') + pad(it.sold, 6, 'right') + pad((it.sold*it.price).toLocaleString(), 12, 'right') + "\n";
                     });
                     c += `------------------------------------------------\nTOTAL OMZET: Rp ${trx.total.toLocaleString()}\n`;
+                } else { // FAKTUR MASUK
+                    c += pad("ITEM", 32) + pad("QTY", 16, 'right') + "\n";
+                    trx.items.forEach(it => { c += pad(it.name.substring(0, 32), 32) + pad(it.qty + " PCS", 16, 'right') + "\n"; });
                 }
-                
-                c += `\n\x1b\x61\x01` + trx.date + `\n\n\n\n\n`;
-                await char.writeValue(new TextEncoder().encode(c));
-                location.reload();
-            } catch (err) { alert("Bluetooth Error!"); }
+
+                c += `\x1b\x61\x01\n` + trx.date + `\n\n\n\n\n\x1b\x6d`; // Cut paper command
+
+                // 4. Chunked Transmission (Mencegah Bluetooth Error di Android)
+                const encoder = new TextEncoder();
+                const data = encoder.encode(c);
+                for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+                    const chunk = data.slice(i, i + CHUNK_SIZE);
+                    await char.writeValue(chunk);
+                    await new Promise(r => setTimeout(r, 20)); // Delay 20ms tiap paket data
+                }
+
+                // 5. Success
+                alert("Berhasil dicetak!");
+                if(trx.type === "PENJUALAN") confirmAction('none'); else closePreview();
+
+            } catch (err) {
+                console.error(err);
+                alert("EROR BLUETOOTH: " + err.message + "\n\nPastikan:\n1. Printer ON & tidak tersambung HP lain\n2. Bluetooth & Lokasi (GPS) Aktif\n3. Buka aplikasi di HTTPS/Localhost");
+            }
         }
 
-        // FAKTUR MASUK
-        function addToQueue() {
-            const n = document.getElementById('restockName').value, p = parseInt(document.getElementById('restockPrice').value), q = parseInt(document.getElementById('restockQty').value);
-            if(!n || !p || !q) return;
-            restockQueue.push({name: n.toUpperCase(), price: p, qty: q});
-            renderQueue();
-            document.getElementById('restockName').value=""; document.getElementById('restockQty').value="";
+        // --- PREVIEW & PROCESS ---
+        function finalProcess(m) {
+            const v = calculateChange();
+            if(v.tot === 0 || v.pay < v.tot) return alert("Cek data transaksi!");
+            window.activeTrx = { type:m, date: new Date().toLocaleString('id-ID'), id: 'INV'+Date.now().toString().slice(-6), ...v, items:[...tempCart] };
+            let rows = window.activeTrx.items.map(it => `<tr><td>${it.name}</td><td align="right">${it.qty}</td><td align="right">${(it.price*it.qty).toLocaleString()}</td></tr>`).join('');
+            document.getElementById('receipt-content').innerHTML = `
+                <div style="text-align:center;"><b style="font-size:20px;">${config.nama}</b><br>HP: ${config.hp}</div>
+                <div class="full-line"></div>
+                <table class="table-pro"><thead><tr><th>ITEM</th><th align="right">QTY</th><th align="right">TOTAL</th></tr></thead><tbody>${rows}</tbody></table>
+                <div class="full-line"></div>
+                <div style="font-size:14px; font-weight:bold;">TOTAL: Rp ${window.activeTrx.tot.toLocaleString()}</div>
+                <div style="font-size:12px;">TUNAI: ${window.activeTrx.pay.toLocaleString()} | KEMBALI: ${window.activeTrx.change.toLocaleString()}</div>
+                <div class="full-line"></div><div style="text-align:center;">TERIMA KASIH</div>
+            `;
+            document.getElementById('preview-modal').style.display = 'flex';
         }
 
-        function renderQueue() {
-            document.getElementById('queueList').innerHTML = restockQueue.map((it, i) => `
-                <div class="flex justify-between bg-white p-3 rounded-xl border"><span>${it.name} (${it.qty})</span><button onclick="restockQueue.splice(${i},1);renderQueue()" class="text-red-500">×</button></div>`).join('');
-            restockQueue.length > 0 ? document.getElementById('btnConfirmRestock').classList.remove('hidden') : document.getElementById('btnConfirmRestock').classList.add('hidden');
+        function prepareStockReport() {
+            let total = 0;
+            let rows = inventory.map(it => {
+                const sub = (it.sold || 0) * it.price; total += sub;
+                return `<tr><td>${it.name}</td><td align="right">${it.qty+it.sold}</td><td align="right">${it.qty}</td><td align="right">${it.sold}</td><td align="right">${sub.toLocaleString()}</td></tr>`;
+            }).join('');
+            window.activeTrx = { type: "LAPORAN AUDIT", date: new Date().toLocaleString('id-ID'), total };
+            document.getElementById('receipt-content').innerHTML = `
+                <div style="text-align:center;"><b style="font-size:18px;">${config.nama}</b><br>LAPORAN AUDIT OMZET</div>
+                <div class="full-line"></div>
+                <table class="table-pro"><thead><tr><th>ITEM</th><th>AWL</th><th>SIS</th><th>LKU</th><th align="right">OMZ</th></tr></thead><tbody>${rows}</tbody></table>
+                <div class="full-line"></div>
+                <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:16px;"><span>TOTAL</span><span>Rp ${total.toLocaleString()}</span></div>
+                <div class="full-line"></div><div style="text-align:center; font-size:11px;">${window.activeTrx.date}</div>
+            `;
+            document.getElementById('preview-modal').style.display = 'flex';
         }
 
         function processQueue() {
@@ -259,61 +295,33 @@
             saveInv();
             let rows = window.activeTrx.items.map(it => `<tr><td>${it.name}</td><td align="right">${it.qty} UNIT</td></tr>`).join('');
             document.getElementById('receipt-content').innerHTML = `
-                <div style="text-align:center;"><b style="font-size:18px;">${config.nama}</b><br>HP: ${config.hp}<br><b>FAKTUR MASUK</b></div>
+                <div style="text-align:center;"><b style="font-size:18px;">${config.nama}</b><br><b>FAKTUR TERIMA BARANG</b></div>
                 <div class="full-line"></div>
-                <table class="table-pro"><thead><tr><th align="left">NAMA BARANG</th><th align="right">QTY</th></tr></thead><tbody>${rows}</tbody></table>
+                <table class="table-pro"><thead><tr><th>NAMA BARANG</th><th align="right">QTY</th></tr></thead><tbody>${rows}</tbody></table>
                 <div class="full-line"></div><div style="text-align:center; font-size:11px;">TGL: ${window.activeTrx.date}</div>
             `;
             document.getElementById('preview-modal').style.display = 'flex';
+            restockQueue = []; renderQueue();
         }
 
-        function prepareStockReport() {
-            let total = 0;
-            let rows = inventory.map(it => {
-                const sub = (it.sold || 0) * it.price;
-                total += sub;
-                return `<tr><td>${it.name}</td><td align="right">${it.qty+it.sold}</td><td align="right">${it.qty}</td><td align="right">${it.sold}</td><td align="right">${sub.toLocaleString()}</td></tr>`;
-            }).join('');
-            window.activeTrx = { type: "LAPORAN AUDIT", date: new Date().toLocaleString('id-ID'), total };
-            document.getElementById('receipt-content').innerHTML = `
-                <div style="text-align:center;"><b style="font-size:18px;">${config.nama}</b><br><b>LAPORAN AUDIT OMZET</b></div>
-                <div class="full-line"></div>
-                <table class="table-pro"><thead><tr><th>ITEM</th><th>AWL</th><th>SIS</th><th>LKU</th><th align="right">OMZ</th></tr></thead><tbody>${rows}</tbody></table>
-                <div class="full-line"></div>
-                <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:16px;"><span>TOTAL</span><span>Rp ${total.toLocaleString()}</span></div>
-                <div class="full-line"></div><div style="text-align:center; font-size:11px;">${window.activeTrx.date}</div>
-            `;
-            document.getElementById('preview-modal').style.display = 'flex';
+        // --- UTILS ---
+        function addToQueue() {
+            const n = document.getElementById('restockName').value, p = parseInt(document.getElementById('restockPrice').value), q = parseInt(document.getElementById('restockQty').value);
+            if(!n || !p || !q) return;
+            restockQueue.push({name: n.toUpperCase(), price: p, qty: q});
+            renderQueue();
+            document.getElementById('restockName').value=""; document.getElementById('restockQty').value="";
         }
-
-        function finalProcess(m) {
-            const v = calculateChange();
-            if(v.tot === 0 || v.pay < v.tot) return alert("Cek Pembayaran!");
-            const trx = { type:m, date: new Date().toLocaleString('id-ID'), id: 'INV'+Date.now().toString().slice(-6), ...v, items:[...tempCart] };
-            window.activeTrx = trx;
-            let rows = trx.items.map(it => `<tr><td>${it.name}</td><td align="right">${it.qty}</td><td align="right">${(it.price*it.qty).toLocaleString()}</td></tr>`).join('');
-            document.getElementById('receipt-content').innerHTML = `
-                <div style="text-align:center;"><b style="font-size:22px;">${config.nama}</b><br>HP: ${config.hp}</div>
-                <div class="full-line"></div>
-                <table class="table-pro"><thead><tr><th>ITEM</th><th align="right">QTY</th><th align="right">TOTAL</th></tr></thead><tbody>${rows}</tbody></table>
-                <div class="full-line"></div>
-                <div style="font-size:14px; font-weight:bold;">TOTAL: Rp ${trx.tot.toLocaleString()}</div>
-                <div style="font-size:12px;">TUNAI: ${trx.pay.toLocaleString()} | KEMBALI: ${trx.change.toLocaleString()}</div>
-                <div class="full-line"></div><div style="text-align:center;">TERIMA KASIH</div>
-            `;
-            document.getElementById('preview-modal').style.display = 'flex';
+        function renderQueue() {
+            document.getElementById('queueList').innerHTML = restockQueue.map((it, i) => `
+                <div class="flex justify-between bg-white p-3 rounded-xl border"><span>${it.name} (${it.qty})</span><button onclick="restockQueue.splice(${i},1);renderQueue()" class="text-red-500">×</button></div>`).join('');
+            restockQueue.length > 0 ? document.getElementById('btnConfirmRestock').classList.remove('hidden') : document.getElementById('btnConfirmRestock').classList.add('hidden');
         }
-
-        async function confirmAction(type) {
-            const trx = window.activeTrx;
-            if(trx.type === "PENJUALAN") {
-                trx.items.forEach(it => { const inv = inventory.find(i=>i.name===it.name); inv.qty -= it.qty; inv.sold = (inv.sold || 0) + it.qty; });
-                historyTrx.unshift(trx); saveInv(); localStorage.setItem('v39_hist', JSON.stringify(historyTrx));
-            }
-            if(type === 'jpg') { const canvas = await html2canvas(document.getElementById('receipt-canvas'), {scale:3}); const l = document.createElement('a'); l.download = trx.type+'.jpg'; l.href = canvas.toDataURL(); l.click(); }
+        function confirmAction() {
+            window.activeTrx.items.forEach(it => { const inv = inventory.find(i=>i.name===it.name); inv.qty -= it.qty; inv.sold = (inv.sold || 0) + it.qty; });
+            historyTrx.unshift(window.activeTrx); saveInv(); localStorage.setItem('v39_hist', JSON.stringify(historyTrx));
             location.reload();
         }
-
         function renderHistory() {
             document.getElementById('historyList').innerHTML = historyTrx.map((t, i) => `
                 <div class="bg-white p-4 rounded-3xl border flex justify-between items-center mb-2">
@@ -322,8 +330,8 @@
                 </div>`).join('');
         }
         function reprint(i) { window.activeTrx = {...historyTrx[i]}; finalProcess('REPRINT'); }
-        function resetAllData() { if(confirm("Format seluruh data?")) { localStorage.clear(); location.reload(); } }
         function closePreview() { document.getElementById('preview-modal').style.display = 'none'; }
+        function resetAllData() { if(confirm("Format seluruh data?")) { localStorage.clear(); location.reload(); } }
         init();
     </script>
 </body>
