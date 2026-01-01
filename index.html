@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kasir Pro V41.4 - BT Popup</title>
+    <title>Kasir Pro V41.4.1 - Fix Menu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -18,8 +18,8 @@
 <body>
 
     <div class="bg-blue-600 text-white p-5 sticky top-0 z-40 flex justify-between items-center shadow-lg">
-        <div><h1 id="shopDisplay" class="font-black text-lg uppercase">KASIR PRO</h1><p class="text-[9px] opacity-70 tracking-widest">BT POPUP VERSION 41.4</p></div>
-        <button onclick="switchTab('ambil')" class="bg-blue-700 px-4 py-2 rounded-xl text-xs font-bold border border-blue-400 uppercase">System</button>
+        <div><h1 id="shopDisplay" class="font-black text-lg uppercase">KASIR PRO</h1><p class="text-[9px] opacity-70 tracking-widest">FIXED MENU V41.4.1</p></div>
+        <button onclick="switchTab('ambil')" class="bg-blue-700 px-4 py-2 rounded-xl text-xs font-bold border border-blue-400 uppercase">Sistem</button>
     </div>
 
     <div class="max-w-md mx-auto px-4 mt-6">
@@ -32,33 +32,38 @@
                     <button onclick="addSaleItem()" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-md active:scale-95 transition-transform">TAMBAH</button>
                 </div>
             </div>
-            
             <div id="saleList" class="space-y-2"></div>
-            
             <div class="bg-slate-900 text-white p-6 rounded-[2.5rem] shadow-2xl space-y-4">
                 <div class="flex justify-between items-center"><span class="text-[10px] font-bold opacity-50 uppercase">Total Bayar</span><span class="text-3xl font-black text-blue-400">Rp <span id="displayTotal">0</span></span></div>
-                <input type="number" id="salePay" oninput="calculateChange()" placeholder="MASUKKAN PEMBAYARAN" class="w-full bg-slate-800 p-5 rounded-2xl text-emerald-400 font-black text-center text-2xl outline-none border-2 border-slate-700">
+                <input type="number" id="salePay" oninput="calculateChange()" placeholder="BAYAR" class="w-full bg-slate-800 p-5 rounded-2xl text-emerald-400 font-black text-center text-2xl outline-none border-2 border-slate-700">
                 <div class="flex justify-between px-2 font-bold text-orange-400"><span>KEMBALIAN</span><span>Rp <span id="displayChange">0</span></span></div>
-                <button onclick="processTransaction()" class="w-full bg-blue-600 py-5 rounded-2xl font-black uppercase tracking-widest shadow-lg active:bg-blue-700">BAYAR & SIMPAN</button>
+                <button onclick="processTransaction()" class="w-full bg-blue-600 py-5 rounded-2xl font-black uppercase tracking-widest shadow-lg">BAYAR & SIMPAN</button>
             </div>
         </div>
 
+        <div id="sec-retur" class="hidden space-y-3">
+            <h2 class="font-black text-slate-400 text-xs uppercase mb-4">Status Stok Barang</h2>
+            <div id="inventoryStatus" class="space-y-3"></div>
+        </div>
+
+        <div id="sec-laporan" class="hidden space-y-3">
+            <h2 class="font-black text-slate-400 text-xs uppercase mb-4">Riwayat Transaksi</h2>
+            <div id="historyList" class="space-y-3"></div>
+        </div>
+
         <div id="sec-ambil" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-[2rem] border-2 border-slate-200 space-y-4">
-                <h3 class="font-black text-xs text-slate-400 uppercase">Database Tools</h3>
+            <div class="bg-white p-6 rounded-[2rem] border-2 border-slate-200 space-y-4 shadow-sm">
+                <h3 class="font-black text-xs text-slate-400 uppercase">Database</h3>
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="exportCSV()" class="bg-slate-100 p-4 rounded-xl font-bold text-[10px] uppercase border">💾 Export CSV</button>
-                    <button onclick="document.getElementById('importInput').click()" class="bg-slate-100 p-4 rounded-xl font-bold text-[10px] uppercase border">📂 Import CSV</button>
+                    <button onclick="exportCSV()" class="bg-slate-100 p-4 rounded-xl font-bold text-[10px] uppercase border">💾 Export</button>
+                    <button onclick="document.getElementById('importInput').click()" class="bg-slate-100 p-4 rounded-xl font-bold text-[10px] uppercase border">📂 Import</button>
                     <input type="file" id="importInput" class="hidden" accept=".csv" onchange="importCSV(event)">
                 </div>
                 <hr>
                 <input type="text" id="cfgNama" placeholder="NAMA TOKO" class="w-full p-4 rounded-xl font-bold border-2">
-                <button onclick="saveSettings()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase text-xs">Simpan Nama Toko</button>
+                <button onclick="saveSettings()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase text-xs">Simpan</button>
             </div>
         </div>
-
-        <div id="sec-retur" class="hidden space-y-3" id="inventoryStatus"></div>
-        <div id="sec-laporan" class="hidden space-y-3" id="historyList"></div>
     </div>
 
     <div id="preview-modal">
@@ -95,24 +100,18 @@
             updateDropdown();
         }
 
-        // --- FUNGSI POP-UP PRINTER (YANG ANDA MINTA) ---
         async function openPrinterPopup() {
             try {
-                // Ini akan memicu Pop-up pilihan perangkat Bluetooth di Browser
                 const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }], // UUID standar thermal printer
+                    filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
                     optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
                 });
-                
-                alert("Berhasil memilih perangkat: " + device.name);
-                // Koneksi GATT bisa dilanjutkan di sini jika diperlukan pengiriman data RAW
+                alert("Terhubung ke: " + device.name);
             } catch (error) {
-                console.log("Bluetooth Error: " + error);
-                alert("Pencarian dibatalkan atau perangkat tidak didukung.");
+                alert("Gagal/Batal menghubungkan bluetooth.");
             }
         }
 
-        // --- LOGIC KASIR ASLI 41.4 ---
         function processTransaction() {
             const tot = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0);
             const pay = parseInt(document.getElementById('salePay').value) || 0;
@@ -125,7 +124,6 @@
                 total: tot, pay: pay, change: pay-tot
             };
 
-            // Update Stok
             trx.items.forEach(c => {
                 const item = inventory.find(i => i.name === c.name);
                 if(item) item.qty -= c.qty;
@@ -135,7 +133,6 @@
             localStorage.setItem('v41_stok', JSON.stringify(inventory));
             localStorage.setItem('v41_hist', JSON.stringify(historyTrx));
 
-            // Generate Struk 80mm
             document.getElementById('receipt-content').innerHTML = `
                 <center><b style="font-size:18px;">${config.nama}</b><br>80mm Printer Mode</center>
                 <div class="full-line"></div>
@@ -150,8 +147,6 @@
                 <div class="full-line"></div>
                 <table style="width:100%; font-size:14px; font-weight:bold;">
                     <tr><td>TOTAL</td><td align="right">Rp ${tot.toLocaleString()}</td></tr>
-                    <tr><td style="font-weight:normal; font-size:11px;">BAYAR</td><td align="right" style="font-weight:normal; font-size:11px;">${pay.toLocaleString()}</td></tr>
-                    <tr><td style="font-weight:normal; font-size:11px;">KEMBALI</td><td align="right" style="font-weight:normal; font-size:11px;">${trx.change.toLocaleString()}</td></tr>
                 </table>
                 <div class="full-line"></div>
                 <center style="font-size:11px;">TERIMA KASIH</center>
@@ -162,14 +157,44 @@
             document.getElementById('salePay').value = '';
         }
 
-        // --- UTILS & TABS ---
         function switchTab(t) {
             ['sec-kasir','sec-retur','sec-ambil','sec-laporan'].forEach(s => document.getElementById(s).classList.add('hidden'));
             ['t-kasir','t-retur','t-ambil','t-laporan'].forEach(b => document.getElementById(b).classList.remove('tab-active'));
             document.getElementById('sec-'+t).classList.remove('hidden');
             document.getElementById('t-'+t).classList.add('tab-active');
-            if(t==='retur') renderStock();
-            if(t==='laporan') renderHistory();
+            
+            if(t === 'retur') renderStock();
+            if(t === 'laporan') renderHistory();
+        }
+
+        function renderStock() {
+            const container = document.getElementById('inventoryStatus');
+            container.innerHTML = inventory.map((it, i) => `
+                <div class="bg-white p-4 rounded-xl border flex justify-between items-center shadow-sm">
+                    <div><b class="text-xs uppercase">${it.name}</b><br><span class="text-[10px] text-blue-600 font-bold">Stok: ${it.qty}</span></div>
+                    <button onclick="deleteStock(${i})" class="text-red-500 text-[10px] font-bold">HAPUS</button>
+                </div>
+            `).join('') || "<p class='text-center py-10 opacity-30'>Stok Kosong</p>";
+        }
+
+        function deleteStock(i) {
+            if(confirm("Hapus barang?")) {
+                inventory.splice(i,1);
+                localStorage.setItem('v41_stok', JSON.stringify(inventory));
+                renderStock();
+                updateDropdown();
+            }
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyList');
+            container.innerHTML = historyTrx.map((t) => `
+                <div class="bg-white p-4 rounded-xl border shadow-sm">
+                    <div class="text-[10px] font-bold text-slate-400">${t.id} | ${t.date}</div>
+                    <div class="text-blue-700 font-black text-sm">Rp ${t.total.toLocaleString()}</div>
+                    <div class="text-[9px] mt-1 italic">${t.items.map(it => it.name).join(', ')}</div>
+                </div>
+            `).join('') || "<p class='text-center py-10 opacity-30'>Belum ada riwayat</p>";
         }
 
         function updateDropdown() {
@@ -192,7 +217,7 @@
         function renderCart() {
             document.getElementById('saleList').innerHTML = tempCart.map((c, i) => `
                 <div class="bg-white p-4 rounded-2xl flex justify-between shadow-sm border border-slate-100">
-                    <span class="text-xs font-black">${c.name} (${c.qty})</span>
+                    <span class="text-xs font-black uppercase">${c.name} (${c.qty})</span>
                     <button onclick="tempCart.splice(${i},1);renderCart();" class="text-red-500 font-bold px-4">×</button>
                 </div>
             `).join('');
@@ -205,24 +230,6 @@
             const tot = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0);
             const pay = parseInt(document.getElementById('salePay').value) || 0;
             document.getElementById('displayChange').innerText = (pay >= tot) ? (pay-tot).toLocaleString() : "0";
-        }
-
-        function renderStock() {
-            document.getElementById('inventoryStatus').innerHTML = inventory.map((it, i) => `
-                <div class="bg-white p-4 rounded-xl border flex justify-between items-center shadow-sm">
-                    <b class="text-xs uppercase">${it.name} (Stok: ${it.qty})</b>
-                    <button onclick="inventory.splice(${i},1);localStorage.setItem('v41_stok', JSON.stringify(inventory));renderStock();" class="text-red-500 text-[10px] font-bold">HAPUS</button>
-                </div>
-            `).join('');
-        }
-
-        function renderHistory() {
-            document.getElementById('historyList').innerHTML = historyTrx.map((t) => `
-                <div class="bg-white p-4 rounded-xl border shadow-sm">
-                    <div class="text-[10px] font-bold">${t.id} | ${t.date}</div>
-                    <div class="text-blue-600 font-black">Rp ${t.total.toLocaleString()}</div>
-                </div>
-            `).join('') || "<p class='text-center py-10 opacity-30'>Tidak ada riwayat.</p>";
         }
 
         function importCSV(e) {
