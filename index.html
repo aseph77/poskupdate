@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KASIR PRO V52.9 - FINAL</title>
+    <title>KASIR PRO V52.9.2 - GABUNGAN</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
@@ -13,7 +13,7 @@
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; height: 80px; z-index: 1000; border-top: 1px solid #e2e8f0; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
         #preview-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 10px; }
-        .receipt-paper { background: white; width: 100%; max-width: 420px; padding: 15px; font-family: 'Courier New', monospace; white-space: pre; font-size: 12px; line-height: 1.2; overflow-x: auto; color: #000; }
+        .receipt-paper { background: white; width: 100%; max-width: 420px; padding: 15px; font-family: 'Courier New', monospace; white-space: pre; font-size: 12px; line-height: 1.2; overflow-x: auto; color: #000; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -22,8 +22,8 @@
         <div class="flex flex-col w-full items-center gap-4">
             <div id="receipt-content" class="receipt-paper shadow-2xl"></div>
             <div class="flex gap-2 w-full max-w-[420px]">
-                <button onclick="closePreview()" class="flex-1 bg-slate-700 text-white py-4 rounded-2xl font-black">BATAL</button>
-                <button onclick="executePrint()" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg">CETAK (BT)</button>
+                <button onclick="closePreview()" class="flex-1 bg-slate-700 text-white py-4 rounded-2xl font-black uppercase">Batal</button>
+                <button onclick="executePrint()" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg uppercase">Cetak Sekarang</button>
             </div>
         </div>
     </div>
@@ -32,9 +32,9 @@
         <div class="bg-white text-slate-900 p-8 rounded-[2.5rem] w-full max-w-sm text-center">
             <h2 class="text-3xl font-black mb-6 text-blue-700 uppercase">KASIR PRO</h2>
             <div class="space-y-4">
-                <input type="text" id="loginUser" placeholder="USERNAME" class="border-2 p-4 rounded-2xl w-full uppercase font-bold outline-none border-slate-200 focus:border-blue-500">
-                <input type="password" id="loginPass" placeholder="PASSWORD" class="border-2 p-4 rounded-2xl w-full outline-none border-slate-200 focus:border-blue-500">
-                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-xl hover:bg-blue-700 transition-all uppercase">Masuk</button>
+                <input type="text" id="loginUser" placeholder="USERNAME" class="border-2 p-4 rounded-2xl w-full uppercase font-bold outline-none border-slate-200">
+                <input type="password" id="loginPass" placeholder="PASSWORD" class="border-2 p-4 rounded-2xl w-full outline-none border-slate-200">
+                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-xl uppercase">Masuk</button>
             </div>
         </div>
     </div>
@@ -43,15 +43,15 @@
         <header class="bg-white border-b p-4 sticky top-0 z-50 flex justify-between items-center">
             <div class="flex flex-col">
                 <span id="shopDisp" class="font-black text-blue-700 uppercase leading-none">TOKO</span>
-                <span id="roleDisp" class="text-[10px] font-bold text-slate-400 mt-1 uppercase">KASIR</span>
+                <span id="roleDisp" class="text-[10px] font-bold text-slate-400 mt-1 uppercase">MEMUAT...</span>
             </div>
-            <button id="btStat" onclick="connectBT()" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-[10px] font-black border uppercase">🔌 Hubungkan Printer</button>
+            <button id="btStat" onclick="connectBT()" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl text-[10px] font-black border uppercase">🔌 Scan Printer</button>
         </header>
 
         <main class="max-w-md mx-auto p-4 space-y-4">
             <section id="sec-kasir" class="space-y-4">
                 <div class="bg-white p-5 rounded-[2rem] border shadow-sm space-y-4">
-                    <input type="text" id="custName" placeholder="NAMA PELANGGAN" class="border-2 p-3 rounded-xl w-full uppercase font-bold">
+                    <input type="text" id="custName" placeholder="NAMA PELANGGAN" class="border-2 p-3 rounded-xl w-full uppercase font-bold outline-none">
                     <select id="prodSelect" onchange="handleProductChange()" class="border-2 p-3 rounded-xl w-full font-bold bg-slate-50 border-slate-200"></select>
                     <div id="unitWrap" class="flex gap-1 hidden">
                         <button onclick="setUnit('BKS')" id="u-BKS" class="flex-1 p-3 border-2 rounded-xl font-black text-[10px]">BKS</button>
@@ -62,66 +62,56 @@
                         <input type="number" id="saleQty" value="1" class="border-2 p-3 rounded-xl w-full text-center font-bold" placeholder="QTY">
                         <input type="number" id="saleDisc" value="0" class="border-2 p-3 rounded-xl w-full text-center text-red-500 font-bold" placeholder="POT">
                     </div>
-                    <button onclick="addToCart()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-lg">Tambah Ke Keranjang</button>
+                    <button onclick="addToCart()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-lg">Tambah Barang</button>
                 </div>
                 <div id="cartList" class="space-y-2"></div>
                 <div class="bg-slate-900 p-6 rounded-[2.5rem] text-white space-y-4 shadow-2xl">
-                    <div class="flex justify-between items-center"><span class="text-xs font-bold opacity-50 uppercase">Total Bayar</span><span class="text-3xl font-black text-blue-400">Rp <span id="totDisp">0</span></span></div>
+                    <div class="flex justify-between items-center"><span class="text-xs font-bold opacity-50 uppercase">Total</span><span class="text-3xl font-black text-blue-400">Rp <span id="totDisp">0</span></span></div>
                     <div class="flex gap-2">
-                        <input type="text" id="payInput" oninput="formatRp(this)" placeholder="INPUT TUNAI" class="flex-1 bg-slate-800 text-emerald-400 text-2xl font-black text-center border-none rounded-2xl py-3 outline-none">
-                        <button onclick="setPas()" class="bg-blue-600 px-6 rounded-2xl font-black text-xs">UANG PAS</button>
+                        <input type="text" id="payInput" oninput="formatRp(this)" placeholder="BAYAR" class="flex-1 bg-slate-800 text-emerald-400 text-2xl font-black text-center border-none rounded-2xl py-3 outline-none">
+                        <button onclick="setPas()" class="bg-blue-600 px-6 rounded-2xl font-black text-xs uppercase">Pas</button>
                     </div>
-                    <button onclick="showPreview('trx')" class="w-full bg-blue-500 py-5 rounded-[1.8rem] font-black uppercase tracking-widest shadow-lg">PROSES & TINJAU FAKTUR</button>
+                    <button onclick="showPreview('trx')" class="w-full bg-blue-500 py-5 rounded-[1.8rem] font-black uppercase tracking-widest shadow-lg">Tinjau Struk</button>
                 </div>
             </section>
 
             <section id="sec-stok" class="hidden space-y-4">
-                <div class="bg-white p-5 rounded-[2rem] border space-y-4">
+                <div class="bg-white p-5 rounded-[2rem] border shadow-sm space-y-4 text-center">
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="exportExcel()" class="bg-emerald-600 text-white p-4 rounded-2xl font-black text-[10px] uppercase shadow-sm">Export Excel</button>
-                        <div class="relative bg-blue-700 text-white p-4 rounded-2xl font-black text-[10px] text-center uppercase shadow-sm">
+                        <button onclick="exportExcel()" class="bg-emerald-600 text-white p-4 rounded-2xl font-black text-[10px] uppercase">Export Excel</button>
+                        <div class="relative bg-blue-700 text-white p-4 rounded-2xl font-black text-[10px] text-center uppercase">
                             Import Excel <input type="file" id="excelIn" accept=".xlsx" onchange="importExcel(this)" class="absolute inset-0 opacity-0">
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="showPreview('audit')" class="bg-slate-900 text-white p-4 rounded-2xl font-black text-[10px] uppercase shadow-sm">Audit Stok (80mm)</button>
-                        <button onclick="resetStockOnly()" class="bg-orange-600 text-white p-4 rounded-2xl font-black text-[10px] uppercase shadow-sm">Reset Omzet</button>
+                        <button onclick="showPreview('audit')" class="bg-slate-900 text-white p-4 rounded-2xl font-black text-[10px] uppercase">Preview Audit</button>
+                        <button onclick="resetStockOnly()" class="bg-orange-600 text-white p-4 rounded-2xl font-black text-[10px] uppercase">Reset Omzet</button>
                     </div>
-                </div>
-                <div class="bg-white p-6 rounded-[2rem] border space-y-4">
-                    <h3 class="font-black text-xs text-slate-400 text-center uppercase">Input Barang Baru</h3>
-                    <input type="text" id="mName" placeholder="NAMA PRODUK" class="border-2 p-3 rounded-xl w-full uppercase font-bold outline-none">
-                    <div class="grid grid-cols-3 gap-2">
-                        <input type="number" id="mBks" placeholder="HRG BKS" class="border-2 p-2 rounded-xl text-center text-xs">
-                        <input type="number" id="mPak" placeholder="HRG PAK" class="border-2 p-2 rounded-xl text-center text-xs">
-                        <input type="number" id="mBall" placeholder="HRG BALL" class="border-2 p-2 rounded-xl text-center text-xs">
-                    </div>
-                    <input type="number" id="mQty" placeholder="STOK AWAL (BKS)" class="border-2 p-3 rounded-xl w-full font-bold">
-                    <button onclick="saveItem()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase">Simpan Barang</button>
                 </div>
                 <div id="invList" class="space-y-2"></div>
             </section>
 
             <section id="sec-admin" class="hidden space-y-6">
-                <div class="bg-white p-6 rounded-[2rem] border-2 space-y-4">
-                    <h3 class="font-black text-blue-700 text-xs uppercase">Informasi Toko</h3>
+                <div class="bg-white p-6 rounded-[2rem] border-2 space-y-4 shadow-sm">
+                    <h3 class="font-black text-blue-700 text-xs uppercase">Profil Toko</h3>
                     <input type="text" id="cfgN" placeholder="NAMA TOKO" class="border-2 p-3 rounded-xl w-full">
                     <input type="text" id="cfgA" placeholder="ALAMAT" class="border-2 p-3 rounded-xl w-full">
-                    <textarea id="cfgL" placeholder="Pesan Struk" class="border-2 p-3 rounded-xl w-full"></textarea>
-                    <button onclick="saveCfg()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase">Update Profil</button>
+                    <textarea id="cfgL" placeholder="PESAN STRUK" class="border-2 p-3 rounded-xl w-full"></textarea>
+                    <button onclick="saveCfg()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-md">Update Profil</button>
                 </div>
-                <div class="bg-white p-6 rounded-[2rem] border-2 space-y-4">
+                <div class="bg-white p-6 rounded-[2rem] border-2 space-y-4 shadow-sm">
                     <h3 class="font-black text-xs uppercase">Manajemen Akun</h3>
                     <div id="userList" class="space-y-1 mb-4"></div>
-                    <input type="text" id="newU" placeholder="NAMA USER" class="border-2 p-3 rounded-xl w-full uppercase font-bold">
+                    <hr>
+                    <input type="text" id="newU" placeholder="USERNAME BARU" class="border-2 p-3 rounded-xl w-full uppercase font-bold">
                     <input type="password" id="newP" placeholder="PASSWORD" class="border-2 p-3 rounded-xl w-full font-bold">
                     <select id="newRole" class="border-2 p-3 rounded-xl w-full font-bold">
                         <option value="kasir">AKUN KASIR</option>
                         <option value="admin">AKUN ADMIN</option>
                     </select>
-                    <button onclick="addAcct()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase">Tambah Akun</button>
+                    <button onclick="addAcct()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase">Simpan Akun</button>
                 </div>
-                <button onclick="wipeAll()" class="w-full bg-red-100 text-red-600 border border-red-200 py-4 rounded-2xl font-black uppercase text-xs italic">Hapus Semua Data (Wipe All)</button>
+                <button onclick="wipeAll()" class="w-full bg-red-100 text-red-600 border border-red-200 py-4 rounded-2xl font-black uppercase text-xs">Wipe All Data</button>
             </section>
 
             <section id="sec-hist" class="hidden space-y-2"><div id="hList" class="space-y-2"></div></section>
@@ -136,7 +126,7 @@
     </div>
 
     <script>
-        // --- DATA STATE ---
+        // --- DATA & STATE ---
         let btChar = null, curUser = null, curPrintData = null, selectedUnit = 'BKS';
         let users = JSON.parse(localStorage.getItem('v529_u')) || [{u:'admin', p:'admin', r:'admin'}];
         let inventory = JSON.parse(localStorage.getItem('v529_s')) || [];
@@ -144,7 +134,7 @@
         let history = JSON.parse(localStorage.getItem('v529_h')) || [];
         let cart = [];
 
-        const L = 48; // Presisi 80mm (48 Karakter)
+        const L = 48; // Lebar standar 80mm
 
         // --- AUTH ---
         function handleLogin() {
@@ -155,14 +145,14 @@
                 curUser = found;
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
-                document.getElementById('roleDisp').innerText = `Role: ${found.r} | User: ${found.u}`;
+                document.getElementById('roleDisp').innerText = `Role: ${found.r} | User: ${found.u.toUpperCase()}`;
                 document.querySelectorAll('.admin-only').forEach(e => e.style.display = found.r === 'admin' ? 'flex' : 'none');
                 document.getElementById('shopDisp').innerText = config.n;
                 renderAll();
             } else alert("Login Gagal!");
         }
 
-        // --- PREVIEW SYSTEM (80mm) ---
+        // --- PREVIEW & LOGIC ---
         const pad = (t, n, al='left') => { 
             t = (t||"").toString().substring(0, n); 
             return al === 'left' ? t.padEnd(n, ' ') : t.padStart(n, ' '); 
@@ -172,7 +162,6 @@
             const x = n - t.length; 
             return ' '.repeat(Math.floor(x/2)) + t + ' '.repeat(Math.ceil(x/2)); 
         };
-
         function getNow() {
             const d = new Date();
             const p = (n) => n.toString().padStart(2,'0');
@@ -197,7 +186,6 @@
             else if(type === 'audit') {
                 let grand = 0;
                 s = `${center(config.n, L)}\n${center("FAKTUR AUDIT LAPORAN STOK", L)}\n${center(getNow(), L)}\n${"=".repeat(L)}\n`;
-                // Struktur: NAMA(15) | AWAL(7) | SISA(7) | LAKU(7) | OMZET(10) -> Total 46 + 2 spasi
                 s += `${pad("NAMA BARANG", 15)} ${pad("AWAL", 7)} ${pad("SISA", 7)} ${pad("LAKU", 7)} ${pad("OMZET", 8, 'right')}\n${"-".repeat(L)}\n`;
                 inventory.forEach(it => {
                     grand += (it.rev || 0);
@@ -216,10 +204,20 @@
             document.getElementById('preview-overlay').style.display = 'flex';
         }
 
+        // --- BLUETOOTH & PRINT (STABLE VERSION) ---
         async function executePrint() {
             if(!btChar) return alert("Hubungkan Printer!");
             try {
+                const encoder = new TextEncoder();
+                // Kirim per baris untuk mencegah crash buffer pada printer thermal
+                const lines = (curPrintData.content + "\n\n\n\n\n").split('\n');
+                for (const line of lines) {
+                    await btChar.writeValue(encoder.encode(line + "\n"));
+                }
+
+                // Simpan data jika transaksi berhasil dicetak
                 if(curPrintData.type === 'trx') {
+                    const r = curPrintData.raw;
                     cart.forEach(c => {
                         const it = inventory.find(i => i.name === c.name);
                         if(it) {
@@ -229,25 +227,41 @@
                             it.rev = (it.rev || 0) + (c.prc * c.qty);
                         }
                     });
-                    history.unshift({ id: Date.now(), date: getNow(), cust: curPrintData.raw.cust, total: curPrintData.raw.tot, user: curUser.u });
+                    history.unshift({ id: Date.now(), date: getNow(), cust: r.cust, total: r.tot, user: curUser.u });
                     localStorage.setItem('v529_s', JSON.stringify(inventory));
                     localStorage.setItem('v529_h', JSON.stringify(history));
                     cart = []; 
+                    document.getElementById('payInput').value = '';
+                    document.getElementById('custName').value = '';
                 }
-                const enc = new TextEncoder();
-                const text = curPrintData.content + "\n\n\n\n\n";
-                await btChar.writeValue(enc.encode(text));
-                closePreview(); renderAll(); alert("Sukses Dicetak!");
-            } catch (e) { alert("Bluetooth Error!"); }
+                closePreview(); renderAll(); alert("Sukses!");
+            } catch (e) {
+                console.error(e);
+                alert("Bluetooth Error! Coba dekatkan HP ke printer.");
+            }
         }
 
-        // --- ADMIN ACTIONS ---
+        async function connectBT() {
+            try {
+                const dev = await navigator.bluetooth.requestDevice({ 
+                    filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
+                    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] 
+                });
+                const srv = await dev.gatt.connect();
+                const sc = await srv.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+                btChar = await sc.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+                document.getElementById('btStat').innerText = "✅ Printer Aktif";
+                document.getElementById('btStat').classList.replace('text-slate-600', 'text-blue-600');
+            } catch (e) { alert("Bluetooth Gagal."); }
+        }
+
+        // --- MANAJEMEN DATA ---
         function saveCfg() {
             config.n = document.getElementById('cfgN').value;
             config.a = document.getElementById('cfgA').value;
             config.l = document.getElementById('cfgL').value;
             localStorage.setItem('v529_c', JSON.stringify(config));
-            alert("Profil Toko Diperbarui!");
+            alert("Profil Toko Berhasil Disimpan!");
             location.reload();
         }
 
@@ -255,30 +269,13 @@
             const u = document.getElementById('newU').value.trim().toLowerCase();
             const p = document.getElementById('newP').value;
             const r = document.getElementById('newRole').value;
-            if(!u || !p) return alert("Input Nama/Pass!");
+            if(!u || !p) return alert("Lengkapi data user!");
             users.push({u, p, r});
             localStorage.setItem('v529_u', JSON.stringify(users));
-            document.getElementById('newU').value = '';
-            document.getElementById('newP').value = '';
-            renderAll();
             alert("Akun Berhasil Dibuat!");
+            renderAll();
         }
 
-        // --- BLUETOOTH ---
-        async function connectBT() {
-            try {
-                const dev = await navigator.bluetooth.requestDevice({ filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }], optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] });
-                const srv = await dev.gatt.connect();
-                const sc = await srv.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-                btChar = await sc.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-                document.getElementById('btStat').innerText = "✅ PRINTER TERHUBUNG";
-                document.getElementById('btStat').classList.replace('text-slate-600', 'text-blue-600');
-            } catch (e) { console.error(e); }
-        }
-
-        // --- UTILS ---
-        function setPas() { const t = cart.reduce((a,b)=>a+(b.prc*b.qty), 0); document.getElementById('payInput').value = t.toLocaleString('id-ID'); }
-        function formatRp(e) { let v = e.value.replace(/[^,\d]/g,''); e.value = v ? parseInt(v).toLocaleString('id-ID') : ''; }
         function tab(t) {
             ['kasir','stok','admin','hist'].forEach(k => {
                 document.getElementById('sec-'+k).classList.add('hidden');
@@ -288,27 +285,18 @@
             document.getElementById('t-'+t).classList.add('tab-active');
             renderAll();
         }
-        function closePreview() { document.getElementById('preview-overlay').style.display = 'none'; }
-        function setUnit(u) { selectedUnit = u; ['BKS','PAK','BALL'].forEach(v => document.getElementById('u-'+v).className = v === u ? 'flex-1 p-3 border-2 border-blue-600 bg-blue-50 rounded-xl font-black text-[10px]' : 'flex-1 p-3 border-2 rounded-xl font-black text-[10px]'); }
-        function handleProductChange() { document.getElementById('unitWrap').classList.toggle('hidden', !document.getElementById('prodSelect').value); setUnit('BKS'); }
+
         function renderAll() {
             const s = document.getElementById('prodSelect');
             s.innerHTML = '<option value="">- PILIH PRODUK -</option>' + inventory.map((it,i) => `<option value="${i}">${it.name}</option>`).join('');
-            document.getElementById('invList').innerHTML = inventory.map(it => `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center text-xs"><span><b>${it.name}</b><br>Tersedia: ${it.qty} Bks</span><button onclick="editItem('${it.name}')" class="text-blue-600 font-bold">EDIT</button></div>`).join('');
+            document.getElementById('invList').innerHTML = inventory.map(it => `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center text-xs"><span><b>${it.name}</b><br>Stok: ${it.qty} Bks</span><button onclick="editItem('${it.name}')" class="text-blue-600 font-bold">EDIT</button></div>`).join('');
             document.getElementById('cartList').innerHTML = cart.map((c,i) => `<div class="bg-white p-4 rounded-2xl flex justify-between items-center text-xs shadow-sm font-bold"><span>${c.name} (${c.qty} ${c.unit})</span><button onclick="cart.splice(${i},1);renderAll()" class="text-red-500">BATAL</button></div>`).join('');
             document.getElementById('totDisp').innerText = cart.reduce((a,b)=>a+(b.prc*b.qty), 0).toLocaleString('id-ID');
             document.getElementById('userList').innerHTML = users.map(u => `<div class="flex justify-between p-2 border-b text-[10px] font-bold"><span>${u.u.toUpperCase()}</span><span class="text-blue-600 uppercase">${u.r}</span></div>`).join('');
             document.getElementById('hList').innerHTML = history.slice(0,15).map(h => `<div class="bg-white p-4 rounded-xl border flex justify-between text-[10px] font-bold"><span>${h.date}</span><span>Rp ${h.total.toLocaleString()}</span></div>`).join('');
             document.getElementById('cfgN').value = config.n; document.getElementById('cfgA').value = config.a; document.getElementById('cfgL').value = config.l;
         }
-        function saveItem() {
-            const n = document.getElementById('mName').value.toUpperCase(); if(!n) return;
-            const item = { name: n, pB: parseInt(document.getElementById('mBks').value)||0, pP: parseInt(document.getElementById('mPak').value)||0, pL: parseInt(document.getElementById('mBall').value)||0, qty: parseInt(document.getElementById('mQty').value)||0, sld: 0, rev: 0 };
-            const idx = inventory.findIndex(x => x.name === n);
-            if(idx > -1) { item.sld = inventory[idx].sld; item.rev = inventory[idx].rev; inventory[idx] = item; } else inventory.push(item);
-            localStorage.setItem('v529_s', JSON.stringify(inventory)); renderAll();
-            document.getElementById('mName').value = ''; alert("Produk Disimpan!");
-        }
+
         function addToCart() {
             const idx = document.getElementById('prodSelect').value; if(idx === "") return;
             const it = inventory[idx]; const qty = parseInt(document.getElementById('saleQty').value)||1; const dsc = parseInt(document.getElementById('saleDisc').value)||0;
@@ -316,13 +304,12 @@
             cart.push({ name: it.name, unit: selectedUnit, base: bp, prc: bp - dsc, qty: qty });
             renderAll();
         }
-        function editItem(n) { const it = inventory.find(x => x.name === n); document.getElementById('mName').value = it.name; document.getElementById('mBks').value = it.pB; document.getElementById('mPak').value = it.pP; document.getElementById('mBall').value = it.pL; document.getElementById('mQty').value = it.qty; tab('stok'); }
-        function resetStockOnly() { if(confirm("Hapus seluruh omzet hari ini?")) { inventory.forEach(it => { it.sld = 0; it.rev = 0; }); localStorage.setItem('v529_s', JSON.stringify(inventory)); renderAll(); } }
-        function wipeAll() { if(confirm("FORMAT SELURUH DATA SISTEM?")) { localStorage.clear(); location.reload(); } }
+
+        // --- FITUR EXCEL & RESET ---
         function exportExcel() {
             const ws = XLSX.utils.json_to_sheet(inventory.map(it => ({ Nama: it.name, HrgBks: it.pB, HrgPak: it.pP, HrgBall: it.pL, Stok: it.qty })));
             const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "STOK");
-            XLSX.writeFile(wb, "KASIR_DATA.xlsx");
+            XLSX.writeFile(wb, "DATAKASIR_STOK.xlsx");
         }
         function importExcel(el) {
             const f = el.files[0]; if(!f) return;
@@ -333,6 +320,14 @@
                 localStorage.setItem('v529_s', JSON.stringify(inventory)); renderAll(); alert("Import Selesai!");
             }; r.readAsArrayBuffer(f);
         }
+        function resetStockOnly() { if(confirm("Hapus seluruh omzet hari ini?")) { inventory.forEach(it => { it.sld = 0; it.rev = 0; }); localStorage.setItem('v529_s', JSON.stringify(inventory)); renderAll(); } }
+        function wipeAll() { if(confirm("FORMAT SELURUH SISTEM?")) { localStorage.clear(); location.reload(); } }
+        function closePreview() { document.getElementById('preview-overlay').style.display = 'none'; }
+        function setPas() { const t = cart.reduce((a,b)=>a+(b.prc*b.qty), 0); document.getElementById('payInput').value = t.toLocaleString('id-ID'); }
+        function formatRp(e) { let v = e.value.replace(/[^,\d]/g,''); e.value = v ? parseInt(v).toLocaleString('id-ID') : ''; }
+        function setUnit(u) { selectedUnit = u; ['BKS','PAK','BALL'].forEach(v => document.getElementById('u-'+v).className = v === u ? 'flex-1 p-3 border-2 border-blue-600 bg-blue-50 rounded-xl font-black text-[10px]' : 'flex-1 p-3 border-2 rounded-xl font-black text-[10px]'); }
+        function handleProductChange() { document.getElementById('unitWrap').classList.toggle('hidden', !document.getElementById('prodSelect').value); setUnit('BKS'); }
+        function editItem(n) { const it = inventory.find(x => x.name === n); tab('stok'); document.getElementById('invList').scrollIntoView(); alert("Silakan gunakan Import/Export Excel untuk pengubahan massal."); }
     </script>
 </body>
 </html>
