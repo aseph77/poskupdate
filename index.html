@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kasir Pro V45.1</title>
+    <title>Kasir Pro V46.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -13,7 +13,7 @@
         #preview-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; flex-direction: column; align-items: center; padding: 10px; overflow-y: auto; }
         #receipt-canvas { background: white; width: 80mm; padding: 5mm; color: black; font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.2; }
         pre { white-space: pre-wrap; font-family: inherit; margin: 0; width: 100%; }
-        input, select, textarea { border: 2px solid #e2e8f0; outline: none; transition: 0.2s; border-radius: 12px; padding: 12px; font-weight: bold; width: 100%; }
+        input, select, textarea { border: 2px solid #e2e8f0; outline: none; border-radius: 12px; padding: 12px; font-weight: bold; width: 100%; }
         input:focus { border-color: #2563eb; background: #f8faff; }
         .btn-satuan { flex: 1; padding: 10px; border: 2px solid #e2e8f0; border-radius: 12px; font-weight: 900; font-size: 10px; text-align: center; cursor: pointer; background: #fff; }
         .btn-satuan.active { background: #2563eb; color: white; border-color: #2563eb; }
@@ -22,7 +22,7 @@
 <body>
 
     <div class="bg-blue-600 text-white p-5 sticky top-0 z-40 flex justify-between items-center shadow-lg">
-        <div><h1 id="shopDisplay" class="font-black text-lg uppercase">KASIR PRO</h1><p id="addrDisplay" class="text-[9px] opacity-70 truncate max-w-[180px]"></p></div>
+        <div><h1 id="shopDisplay" class="font-black text-lg uppercase">KASIR PRO</h1><p id="addrDisplay" class="text-[9px] opacity-70 truncate max-w-[150px]"></p></div>
         <div class="flex gap-2">
             <button onclick="exportDB()" class="bg-blue-500 p-2 rounded-lg text-[10px] font-bold border border-blue-400">EXP</button>
             <button onclick="document.getElementById('importFile').click()" class="bg-blue-500 p-2 rounded-lg text-[10px] font-bold border border-blue-400">IMP</button>
@@ -43,33 +43,36 @@
                 </div>
 
                 <div class="flex gap-2">
-                    <div class="w-1/3 text-center"><label class="text-[9px] font-bold">QTY</label><input type="number" id="saleQty" value="1"></div>
-                    <div class="w-1/3 text-center"><label class="text-[9px] font-bold">DISC %</label><input type="number" id="saleDisc" value="0"></div>
-                    <div class="flex-1 pt-4"><button onclick="addSaleItem()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-md active:scale-95 transition-all">TAMBAH</button></div>
+                    <div class="w-1/2 text-center"><label class="text-[9px] font-bold text-blue-600">JUMLAH (QTY)</label><input type="number" id="saleQty" value="1"></div>
+                    <div class="w-1/2 text-center"><label class="text-[9px] font-bold text-red-500">POTONGAN (RP)</label><input type="number" id="saleDisc" value="0"></div>
                 </div>
+                <button onclick="addSaleItem()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-md active:scale-95 transition-all">TAMBAH KE KERANJANG</button>
             </div>
+            
             <div id="saleList" class="space-y-2"></div>
+            
             <div class="bg-slate-900 text-white p-6 rounded-[2.5rem] shadow-2xl space-y-4">
-                <div class="flex justify-between items-center text-blue-400"><span class="text-[10px] font-bold opacity-50 uppercase">TOTAL</span><span class="text-3xl font-black">Rp <span id="displayTotal">0</span></span></div>
-                <input type="number" id="salePay" placeholder="BAYAR" class="bg-slate-800 p-5 text-emerald-400 font-black text-center text-2xl border-none">
-                <button onclick="processTransaction()" class="w-full bg-blue-600 py-5 rounded-2xl font-black uppercase shadow-lg">CETAK STRUK</button>
+                <div class="flex justify-between items-center text-blue-400"><span class="text-[10px] font-bold opacity-50 uppercase">TOTAL AKHIR</span><span class="text-3xl font-black">Rp <span id="displayTotal">0</span></span></div>
+                <input type="number" id="salePay" oninput="calculateChange()" placeholder="BAYAR" class="bg-slate-800 p-5 text-emerald-400 font-black text-center text-2xl border-none">
+                <div class="flex justify-between text-xs font-bold px-2"><span>KEMBALIAN:</span><span id="displayChange">Rp 0</span></div>
+                <button onclick="processTransaction()" class="w-full bg-blue-600 py-5 rounded-2xl font-black uppercase shadow-lg">CETAK STRUK SEKARANG</button>
             </div>
         </div>
 
         <div id="sec-retur" class="hidden space-y-4">
             <div class="bg-white p-4 rounded-3xl shadow-sm border-2 border-blue-50 grid grid-cols-2 gap-3">
-                <button onclick="printStockAudit()" class="bg-blue-600 text-white py-4 rounded-2xl font-black text-[11px] uppercase">📊 CETAK LAPORAN</button>
-                <button onclick="resetSoldStats()" class="bg-red-500 text-white py-4 rounded-2xl font-black text-[11px] uppercase">🔄 RESET LAKU</button>
+                <button onclick="printStockAudit()" class="bg-blue-600 text-white py-4 rounded-2xl font-black text-[11px] uppercase">📊 LAPORAN STOK</button>
+                <button onclick="resetSoldStats()" class="bg-orange-500 text-white py-4 rounded-2xl font-black text-[11px] uppercase">🔄 RESET LAKU</button>
             </div>
             <div class="bg-white p-5 rounded-3xl border-2 border-blue-100 space-y-3">
                 <input type="text" id="mngNama" placeholder="NAMA BARANG" class="uppercase">
                 <div class="grid grid-cols-3 gap-2">
-                    <input type="number" id="mngBks" placeholder="BKS">
-                    <input type="number" id="mngPak" placeholder="PAK">
-                    <input type="number" id="mngBall" placeholder="BALL">
+                    <input type="number" id="mngBks" placeholder="HRG BKS">
+                    <input type="number" id="mngPak" placeholder="HRG PAK">
+                    <input type="number" id="mngBall" placeholder="HRG BALL">
                 </div>
-                <input type="number" id="mngStok" placeholder="STOK (TOTAL BKS)">
-                <button onclick="updateMasterData()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-xs">Simpan / Update</button>
+                <input type="number" id="mngStok" placeholder="STOK AWAL (BKS)">
+                <button onclick="updateMasterData()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-xs">Simpan Data Barang</button>
             </div>
             <div id="inventoryList" class="space-y-2"></div>
         </div>
@@ -80,15 +83,13 @@
 
         <div id="sec-ambil" class="hidden space-y-4">
             <div class="bg-white p-6 rounded-3xl border-2 space-y-4 shadow-sm">
-                <label class="text-xs font-bold text-blue-600">IDENTITAS TOKO</label>
                 <input type="text" id="cfgNama" placeholder="NAMA TOKO">
                 <input type="text" id="cfgAlamat" placeholder="ALAMAT TOKO">
-                <input type="text" id="cfgTelp" placeholder="NOMOR HP / WA">
-                <label class="text-xs font-bold text-blue-600 block mt-2">LOGO STRUK (TEXT ART)</label>
-                <textarea id="cfgLogo" placeholder="CONTOH:
-      -- TOKO BAROKAH --
-       GROSIR & ECERAN" rows="4" class="font-mono text-xs"></textarea>
+                <input type="text" id="cfgTelp" placeholder="NOMOR WA">
+                <textarea id="cfgLogo" placeholder="LOGO TEXT ART" rows="3" class="font-mono text-xs"></textarea>
                 <button onclick="saveSettings()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase">SIMPAN PROFIL</button>
+                <hr>
+                <button onclick="wipeAllData()" class="w-full bg-red-600 text-white py-4 rounded-xl font-black uppercase text-xs">⚠️ RESET SEMUA DATA (HAPUS TOTAL)</button>
             </div>
         </div>
     </div>
@@ -105,14 +106,14 @@
         <button onclick="switchTab('kasir')" id="t-kasir" class="flex-1 py-5 text-[10px] font-black tab-active uppercase">Kasir</button>
         <button onclick="switchTab('retur')" id="t-retur" class="flex-1 py-5 text-[10px] font-black uppercase">Stok</button>
         <button onclick="switchTab('laporan')" id="t-laporan" class="flex-1 py-5 text-[10px] font-black uppercase">Riwayat</button>
-        <button onclick="switchTab('ambil')" id="t-ambil" class="flex-1 py-5 text-[10px] font-black uppercase">Profil</button>
+        <button onclick="switchTab('ambil')" id="t-ambil" class="flex-1 py-5 text-[10px] font-black uppercase">Pengaturan</button>
     </div>
 
     <script>
-        const CHAR_PER_LINE = 48; // Standard 80mm
-        let inventory = JSON.parse(localStorage.getItem('v45_stok')) || [];
-        let config = JSON.parse(localStorage.getItem('v45_conf')) || { nama: "KASIR PRO", alamat: "", telp: "", logo: "" };
-        let historyTrx = JSON.parse(localStorage.getItem('v45_hist')) || [];
+        const CHAR_PER_LINE = 48;
+        let inventory = JSON.parse(localStorage.getItem('v46_stok')) || [];
+        let config = JSON.parse(localStorage.getItem('v46_conf')) || { nama: "KASIR PRO", alamat: "", telp: "", logo: "" };
+        let historyTrx = JSON.parse(localStorage.getItem('v46_hist')) || [];
         let tempCart = [];
         let selectedUnit = 'BKS';
 
@@ -139,34 +140,14 @@
             return text;
         }
 
-        // --- DATABASE TOOLS ---
-        function exportDB() {
-            const data = { inventory, config, historyTrx };
-            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `BACKUP_KASIR_${new Date().getTime()}.json`;
-            a.click();
+        // --- CORE KASIR ---
+        function calculateChange() {
+            const tot = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0);
+            const pay = parseInt(document.getElementById('salePay').value) || 0;
+            const change = pay - tot;
+            document.getElementById('displayChange').innerText = "Rp " + (change >= 0 ? change.toLocaleString() : "0");
         }
 
-        function importDB(input) {
-            const reader = new FileReader();
-            reader.onload = function() {
-                try {
-                    const data = JSON.parse(reader.result);
-                    inventory = data.inventory || [];
-                    config = data.config || config;
-                    historyTrx = data.historyTrx || [];
-                    localStorage.setItem('v45_stok', JSON.stringify(inventory));
-                    localStorage.setItem('v45_conf', JSON.stringify(config));
-                    localStorage.setItem('v45_hist', JSON.stringify(historyTrx));
-                    alert("Import Berhasil!"); location.reload();
-                } catch(e) { alert("File tidak valid!"); }
-            };
-            reader.readAsText(input.files[0]);
-        }
-
-        // --- LOGIKA KASIR ---
         function handleProductChange() {
             const idx = document.getElementById('prodSelect').value;
             const sel = document.getElementById('unitSelector');
@@ -190,109 +171,47 @@
             if(idx === "") return;
             const it = inventory[idx];
             const qty = parseInt(document.getElementById('saleQty').value) || 1;
-            const disc = parseInt(document.getElementById('saleDisc').value) || 0;
+            const discNominal = parseInt(document.getElementById('saleDisc').value) || 0;
             
             let baseP = selectedUnit === 'BKS' ? it.p_bks : (selectedUnit === 'PAK' ? it.p_pak : it.p_ball);
-            let finalP = baseP - (baseP * disc / 100);
+            let finalP = baseP - discNominal; // Diskon Potongan Harga
 
-            tempCart.push({ name: it.name, unit: selectedUnit, base: baseP, price: finalP, qty: qty, disc: disc });
+            tempCart.push({ name: it.name, unit: selectedUnit, base: baseP, price: finalP, qty: qty, disc: discNominal });
             renderCart();
+            calculateChange();
             document.getElementById('saleDisc').value = 0;
         }
 
         function renderCart() {
-            const list = document.getElementById('saleList');
-            list.innerHTML = tempCart.map((c, i) => `
+            document.getElementById('saleList').innerHTML = tempCart.map((c, i) => `
                 <div class="bg-white p-3 rounded-xl border flex justify-between items-center">
-                    <div>
-                        <span class="font-bold text-xs uppercase">${c.name}</span><br>
-                        <span class="text-[10px] text-blue-600 font-bold">${c.qty} ${c.unit} x ${c.base.toLocaleString()} ${c.disc > 0 ? '(-'+c.disc+'%)' : ''}</span>
-                    </div>
-                    <button onclick="tempCart.splice(${i},1);renderCart()" class="text-red-500 font-black px-2">×</button>
+                    <div><b class="text-xs uppercase">${c.name}</b><br><span class="text-[10px] text-blue-600 font-bold">${c.qty} ${c.unit} x ${c.base.toLocaleString()} ${c.disc > 0 ? '(-'+c.disc.toLocaleString()+')' : ''}</span></div>
+                    <button onclick="tempCart.splice(${i},1);renderCart();calculateChange();" class="text-red-500 font-black px-2">×</button>
                 </div>
             `).join('');
             document.getElementById('displayTotal').innerText = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0).toLocaleString();
         }
 
-        // --- CETAK NOTA ---
-        function generateReceipt(trx) {
-            const line = "=".repeat(CHAR_PER_LINE);
-            const dash = "-".repeat(CHAR_PER_LINE);
-            let s = `\n`;
-            if(config.logo) s += config.logo + "\n";
-            else s += pad(config.nama, CHAR_PER_LINE, 'center') + "\n";
-            
-            if(config.alamat) s += pad(config.alamat, CHAR_PER_LINE, 'center') + "\n";
-            if(config.telp) s += pad("WA: " + config.telp, CHAR_PER_LINE, 'center') + "\n";
-            s += line + "\n";
-            s += `ID: ${trx.id} | ${trx.date}\n`;
-            s += `PELANGGAN: ${trx.customer || 'UMUM'}\n`;
-            s += dash + "\n";
-            
-            trx.items.forEach(it => {
-                s += `${it.name.toUpperCase()}\n`;
-                const d = `${it.qty} ${it.unit} x ${it.base.toLocaleString()}`;
-                s += pad(d, 30) + pad((it.price*it.qty).toLocaleString(), 18, 'left') + "\n";
-                if(it.disc > 0) s += pad(`  (DISKON ${it.disc}%)`, 30) + pad(`- ${(it.base*it.qty*it.disc/100).toLocaleString()}`, 18, 'left') + "\n";
-            });
-            
-            s += line + "\n";
-            s += pad("TOTAL AKHIR", 30) + pad(trx.total.toLocaleString(), 18, 'left') + "\n";
-            s += pad("TUNAI", 30) + pad(trx.pay.toLocaleString(), 18, 'left') + "\n";
-            s += pad("KEMBALI", 30) + pad(trx.change.toLocaleString(), 18, 'left') + "\n";
-            s += dash + "\n";
-            s += pad("TERIMA KASIH ATAS KUNJUNGAN ANDA", CHAR_PER_LINE, 'center') + "\n\n\n\n";
-            return s;
-        }
-
-        function processTransaction() {
-            const tot = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0);
-            const pay = parseInt(document.getElementById('salePay').value) || 0;
-            if(tot === 0 || pay < tot) return alert("Pembayaran tidak valid!");
-
-            const trx = {
-                id: "TX" + Date.now().toString().slice(-6),
-                date: new Date().toLocaleString('id-ID'),
-                customer: document.getElementById('custName').value.toUpperCase(),
-                items: [...tempCart], total: tot, pay: pay, change: pay-tot
-            };
-
-            trx.items.forEach(c => {
-                const it = inventory.find(i => i.name === c.name);
-                if(it) { it.qty -= c.qty; it.sold = (it.sold || 0) + c.qty; }
-            });
-
-            historyTrx.unshift(trx);
-            localStorage.setItem('v45_stok', JSON.stringify(inventory));
-            localStorage.setItem('v45_hist', JSON.stringify(historyTrx));
-
-            document.getElementById('receipt-content').innerText = generateReceipt(trx);
-            document.getElementById('preview-modal').style.display = 'flex';
-            tempCart = []; renderCart(); updateDropdown(); renderHistory();
-            document.getElementById('salePay').value = '';
-            document.getElementById('custName').value = '';
-            document.getElementById('unitSelector').classList.add('hidden');
-        }
-
-        // --- LAPORAN STOK & TANDA TANGAN ---
+        // --- CETAK LAPORAN (PENYESUAIAN KOLOM) ---
         function printStockAudit() {
             let omz = 0;
             const line = "=".repeat(CHAR_PER_LINE);
+            // Layout Kolom Baru: Nama(15), Awal(6), Sisa(6), Laku(6), Omzet(15)
             let s = `\n${pad("LAPORAN AUDIT STOK", CHAR_PER_LINE, 'center')}\n`;
             s += `${line}\n`;
-            s += `${pad("NAMA", 18)}${pad("AWAL", 7, 'left')}${pad("SISA", 7, 'left')}${pad("LAKU", 7, 'left')}${pad("OMZET", 9, 'left')}\n`;
+            s += `${pad("NAMA", 15)}${pad("AWAL", 6, 'left')}${pad("SISA", 6, 'left')}${pad("LAKU", 6, 'left')}${pad("OMZET", 15, 'left')}\n`;
             s += `-`.repeat(CHAR_PER_LINE) + `\n`;
             
             inventory.forEach(it => {
                 const laku = it.sold || 0;
                 const awal = it.qty + laku;
-                const sub = laku * it.p_bks; // Estimasi omzet basis BKS
+                const sub = laku * it.p_bks;
                 omz += sub;
-                s += `${pad(it.name, 18)}${pad(awal, 7, 'left')}${pad(it.qty, 7, 'left')}${pad(laku, 7, 'left')}${pad(sub.toLocaleString(), 9, 'left')}\n`;
+                s += `${pad(it.name, 15)}${pad(awal, 6, 'left')}${pad(it.qty, 6, 'left')}${pad(laku, 6, 'left')}${pad(sub.toLocaleString(), 15, 'left')}\n`;
             });
             
             s += `${line}\n`;
-            s += `${pad("TOTAL OMZET (ESTIMASI BKS)", 30)} ${pad(omz.toLocaleString(), 18, 'left')}\n\n`;
+            s += `${pad("ESTIMASI TOTAL OMZET", 30)} ${pad(omz.toLocaleString(), 18, 'left')}\n\n`;
             s += `${pad("DITERIMA OLEH,", 24, 'center')}${pad("PETUGAS TOKO,", 24, 'center')}\n\n\n\n`;
             s += `${pad("(____________)", 24, 'center')}${pad("(____________)", 24, 'center')}\n\n\n`;
 
@@ -300,119 +219,83 @@
             document.getElementById('preview-modal').style.display = 'flex';
         }
 
-        // --- UTILS & NAVIGATION ---
+        // --- RESET DATA ---
+        function wipeAllData() {
+            if(confirm("PERINGATAN! Ini akan menghapus SEMUA data barang, riwayat, dan profil. Lanjutkan?")) {
+                localStorage.clear();
+                alert("Sistem berhasil di-reset ulang.");
+                location.reload();
+            }
+        }
+
+        // --- FUNGSI STANDAR ---
+        function generateReceipt(trx) {
+            const line = "=".repeat(CHAR_PER_LINE);
+            const dash = "-".repeat(CHAR_PER_LINE);
+            let s = `\n`;
+            if(config.logo) s += config.logo + "\n"; else s += pad(config.nama, CHAR_PER_LINE, 'center') + "\n";
+            if(config.alamat) s += pad(config.alamat, CHAR_PER_LINE, 'center') + "\n";
+            if(config.telp) s += pad("WA: " + config.telp, CHAR_PER_LINE, 'center') + "\n";
+            s += line + "\n";
+            s += `ID: ${trx.id} | ${trx.date}\n`;
+            s += `PELANGGAN: ${trx.customer || 'UMUM'}\n`;
+            s += dash + "\n";
+            trx.items.forEach(it => {
+                s += `${it.name.toUpperCase()}\n`;
+                const d = `${it.qty} ${it.unit} x ${it.base.toLocaleString()}`;
+                s += pad(d, 30) + pad((it.price*it.qty).toLocaleString(), 18, 'left') + "\n";
+                if(it.disc > 0) s += pad(`  (POTONGAN)`, 30) + pad(`- ${it.disc.toLocaleString()}`, 18, 'left') + "\n";
+            });
+            s += line + "\n";
+            s += pad("TOTAL AKHIR", 30) + pad(trx.total.toLocaleString(), 18, 'left') + "\n";
+            s += pad("TUNAI", 30) + pad(trx.pay.toLocaleString(), 18, 'left') + "\n";
+            s += pad("KEMBALI", 30) + pad(trx.change.toLocaleString(), 18, 'left') + "\n";
+            s += dash + "\n";
+            s += pad("TERIMA KASIH", CHAR_PER_LINE, 'center') + "\n\n\n\n";
+            return s;
+        }
+
+        function processTransaction() {
+            const tot = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0);
+            const pay = parseInt(document.getElementById('salePay').value) || 0;
+            if(tot === 0 || pay < tot) return alert("Pembayaran kurang!");
+            const trx = { id: "TX" + Date.now().toString().slice(-6), date: new Date().toLocaleString('id-ID'), customer: document.getElementById('custName').value.toUpperCase(), items: [...tempCart], total: tot, pay: pay, change: pay-tot };
+            trx.items.forEach(c => { const it = inventory.find(i => i.name === c.name); if(it) { it.qty -= c.qty; it.sold = (it.sold || 0) + c.qty; } });
+            historyTrx.unshift(trx);
+            localStorage.setItem('v46_stok', JSON.stringify(inventory));
+            localStorage.setItem('v46_hist', JSON.stringify(historyTrx));
+            document.getElementById('receipt-content').innerText = generateReceipt(trx);
+            document.getElementById('preview-modal').style.display = 'flex';
+            tempCart = []; renderCart(); updateDropdown(); renderHistory();
+            document.getElementById('salePay').value = ''; document.getElementById('custName').value = ''; document.getElementById('displayChange').innerText = "Rp 0";
+        }
+
         function updateMasterData() {
             const nama = document.getElementById('mngNama').value.trim().toUpperCase();
             if(!nama) return;
-            const data = {
-                name: nama,
-                p_bks: parseInt(document.getElementById('mngBks').value) || 0,
-                p_pak: parseInt(document.getElementById('mngPak').value) || 0,
-                p_ball: parseInt(document.getElementById('mngBall').value) || 0,
-                qty: parseInt(document.getElementById('mngStok').value) || 0,
-                sold: 0
-            };
+            const data = { name: nama, p_bks: parseInt(document.getElementById('mngBks').value) || 0, p_pak: parseInt(document.getElementById('mngPak').value) || 0, p_ball: parseInt(document.getElementById('mngBall').value) || 0, qty: parseInt(document.getElementById('mngStok').value) || 0, sold: 0 };
             const idx = inventory.findIndex(i => i.name === nama);
             if(idx > -1) inventory[idx] = data; else inventory.push(data);
-            localStorage.setItem('v45_stok', JSON.stringify(inventory));
+            localStorage.setItem('v46_stok', JSON.stringify(inventory));
             renderStock(); updateDropdown();
             ['mngNama','mngBks','mngPak','mngBall','mngStok'].forEach(id => document.getElementById(id).value = '');
         }
 
         function renderStock() {
-            document.getElementById('inventoryList').innerHTML = inventory.map(it => `
-                <div class="bg-white p-4 rounded-2xl border shadow-sm">
-                    <div class="flex justify-between items-start">
-                        <b class="text-sm text-blue-800 uppercase">${it.name}</b>
-                        <button onclick="editItem('${it.name}')" class="text-blue-500 font-bold text-[10px]">EDIT</button>
-                    </div>
-                    <div class="grid grid-cols-3 gap-1 mt-2 text-[9px] font-black text-slate-500">
-                        <div class="bg-slate-50 p-1 rounded">BKS: ${it.p_bks.toLocaleString()}</div>
-                        <div class="bg-slate-50 p-1 rounded">PAK: ${it.p_pak.toLocaleString()}</div>
-                        <div class="bg-slate-50 p-1 rounded">BALL: ${it.p_ball.toLocaleString()}</div>
-                    </div>
-                    <div class="mt-2 text-[10px] font-bold">STOK TERSEDIA: ${it.qty} BKS</div>
-                </div>
-            `).join('');
+            document.getElementById('inventoryList').innerHTML = inventory.map(it => `<div class="bg-white p-4 rounded-2xl border shadow-sm mb-2"><div class="flex justify-between uppercase"><b class="text-xs">${it.name}</b><button onclick="editItem('${it.name}')" class="text-blue-500 font-bold text-[10px]">EDIT</button></div><div class="grid grid-cols-3 gap-1 mt-2 text-[9px] font-bold text-slate-500"><div>BKS: ${it.p_bks.toLocaleString()}</div><div>PAK: ${it.p_pak.toLocaleString()}</div><div>BALL: ${it.p_ball.toLocaleString()}</div></div><div class="mt-1 text-[10px] font-black">STOK: ${it.qty}</div></div>`).join('');
         }
 
-        function editItem(n) {
-            const it = inventory.find(i => i.name === n);
-            document.getElementById('mngNama').value = it.name;
-            document.getElementById('mngBks').value = it.p_bks;
-            document.getElementById('mngPak').value = it.p_pak;
-            document.getElementById('mngBall').value = it.p_ball;
-            document.getElementById('mngStok').value = it.qty;
-            window.scrollTo(0,0);
-        }
-
-        function renderHistory() {
-            document.getElementById('historyList').innerHTML = historyTrx.map(t => `
-                <div class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm">
-                    <div>
-                        <div class="text-[9px] font-bold text-slate-400">${t.id} - ${t.date}</div>
-                        <div class="font-black text-sm">Rp ${t.total.toLocaleString()}</div>
-                        <div class="text-[9px] text-blue-600 font-bold uppercase">${t.customer || 'UMUM'}</div>
-                    </div>
-                    <button onclick="reprint('${t.id}')" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] font-black border border-blue-100">REPRINT</button>
-                </div>
-            `).join('');
-        }
-
-        function reprint(id) {
-            const trx = historyTrx.find(t => t.id === id);
-            if(trx) { document.getElementById('receipt-content').innerText = generateReceipt(trx); document.getElementById('preview-modal').style.display = 'flex'; }
-        }
-
-        function updateDropdown() {
-            const s = document.getElementById('prodSelect');
-            s.innerHTML = '<option value="">- PILIH BARANG -</option>';
-            inventory.forEach((it, i) => s.innerHTML += `<option value="${i}">${it.name}</option>`);
-        }
-
-        function switchTab(t) {
-            ['sec-kasir','sec-retur','sec-ambil','sec-laporan'].forEach(s => document.getElementById(s).classList.add('hidden'));
-            ['t-kasir','t-retur','t-ambil','t-laporan'].forEach(b => document.getElementById(b).classList.remove('tab-active'));
-            document.getElementById('sec-'+t).classList.remove('hidden');
-            document.getElementById('t-'+t).classList.add('tab-active');
-            if(t==='retur') renderStock();
-            if(t==='laporan') renderHistory();
-        }
-
-        function saveSettings() {
-            config.nama = document.getElementById('cfgNama').value.toUpperCase();
-            config.alamat = document.getElementById('cfgAlamat').value.toUpperCase();
-            config.telp = document.getElementById('cfgTelp').value;
-            config.logo = document.getElementById('cfgLogo').value;
-            localStorage.setItem('v45_conf', JSON.stringify(config));
-            alert("Profil Terupdate!"); location.reload();
-        }
-
-        function resetSoldStats() { if(confirm("Reset data penjualan?")) { inventory.forEach(it => it.sold = 0); localStorage.setItem('v45_stok', JSON.stringify(inventory)); renderStock(); } }
+        function editItem(n) { const it = inventory.find(i => i.name === n); document.getElementById('mngNama').value = it.name; document.getElementById('mngBks').value = it.p_bks; document.getElementById('mngPak').value = it.p_pak; document.getElementById('mngBall').value = it.p_ball; document.getElementById('mngStok').value = it.qty; window.scrollTo(0,0); }
+        function renderHistory() { document.getElementById('historyList').innerHTML = historyTrx.map(t => `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm"><div><div class="text-[9px] text-slate-400 font-bold">${t.id}</div><div class="font-black text-sm">Rp ${t.total.toLocaleString()}</div><div class="text-[9px] text-blue-600 font-bold uppercase">${t.customer || 'UMUM'}</div></div><button onclick="reprint('${t.id}')" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] font-black">REPRINT</button></div>`).join(''); }
+        function reprint(id) { const trx = historyTrx.find(t => t.id === id); if(trx) { document.getElementById('receipt-content').innerText = generateReceipt(trx); document.getElementById('preview-modal').style.display = 'flex'; } }
+        function updateDropdown() { const s = document.getElementById('prodSelect'); s.innerHTML = '<option value="">- PILIH BARANG -</option>'; inventory.forEach((it, i) => s.innerHTML += `<option value="${i}">${it.name}</option>`); }
+        function switchTab(t) { ['sec-kasir','sec-retur','sec-ambil','sec-laporan'].forEach(s => document.getElementById(s).classList.add('hidden')); ['t-kasir','t-retur','t-ambil','t-laporan'].forEach(b => document.getElementById(b).classList.remove('tab-active')); document.getElementById('sec-'+t).classList.remove('hidden'); document.getElementById('t-'+t).classList.add('tab-active'); }
+        function saveSettings() { config.nama = document.getElementById('cfgNama').value.toUpperCase(); config.alamat = document.getElementById('cfgAlamat').value.toUpperCase(); config.telp = document.getElementById('cfgTelp').value; config.logo = document.getElementById('cfgLogo').value; localStorage.setItem('v46_conf', JSON.stringify(config)); location.reload(); }
+        function resetSoldStats() { if(confirm("Reset terjual ke 0?")) { inventory.forEach(it => it.sold = 0); localStorage.setItem('v46_stok', JSON.stringify(inventory)); renderStock(); } }
         function closePreview() { document.getElementById('preview-modal').style.display = 'none'; }
-
-        async function connectAndPrint() {
-            const btn = document.getElementById('btnPrint');
-            const text = document.getElementById('receipt-content').innerText;
-            try {
-                btn.disabled = true; btn.innerText = "MENCETAK...";
-                const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
-                    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
-                });
-                const server = await device.gatt.connect();
-                const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-                const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-                const encoder = new TextEncoder();
-                const data = encoder.encode(text + "\n\n\n\n\n");
-                for (let i = 0; i < data.length; i += 20) {
-                    await char.writeValue(data.slice(i, i + 20));
-                    await new Promise(r => setTimeout(r, 45));
-                }
-                btn.disabled = false; btn.innerText = "📲 KIRIM KE PRINTER";
-            } catch (e) { btn.disabled = false; btn.innerText = "📲 KIRIM KE PRINTER"; alert("Printer tidak ditemukan!"); }
-        }
-
+        function exportDB() { const data = { inventory, config, historyTrx }; const blob = new Blob([JSON.stringify(data)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `DB_KASIR_${Date.now()}.json`; a.click(); }
+        function importDB(input) { const r = new FileReader(); r.onload = function() { const d = JSON.parse(r.result); inventory=d.inventory; config=d.config; historyTrx=d.historyTrx; localStorage.setItem('v46_stok', JSON.stringify(inventory)); localStorage.setItem('v46_conf', JSON.stringify(config)); localStorage.setItem('v46_hist', JSON.stringify(historyTrx)); location.reload(); }; r.readAsText(input.files[0]); }
+        async function connectAndPrint() { const btn = document.getElementById('btnPrint'); const text = document.getElementById('receipt-content').innerText; try { btn.disabled = true; const device = await navigator.bluetooth.requestDevice({ filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }], optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] }); const server = await device.gatt.connect(); const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb'); const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb'); const encoder = new TextEncoder(); const data = encoder.encode(text + "\n\n\n\n\n"); for (let i = 0; i < data.length; i += 20) { await char.writeValue(data.slice(i, i + 20)); await new Promise(r => setTimeout(r, 45)); } btn.disabled = false; } catch (e) { btn.disabled = false; alert("Gagal konek printer!"); } }
         init();
     </script>
 </body>
