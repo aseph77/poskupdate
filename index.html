@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kasir Pro V42.0</title>
+    <title>Kasir Pro V42.1 (80mm)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -11,17 +11,24 @@
         .tab-active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: 900; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #e2e8f0; z-index: 50; }
         #preview-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; flex-direction: column; align-items: center; padding: 10px; overflow-y: auto; }
-        #receipt-canvas { background: white; width: 80mm; padding: 5px; color: black; font-family: 'Courier New', Courier, monospace; font-size: 14px; line-height: 1.1; }
-        pre { white-space: pre-wrap; font-family: inherit; margin: 0; border: 1px solid #eee; }
-        /* Animasi Loading */
-        #print-status { display: none; margin-top: 10px; color: #60a5fa; font-weight: bold; font-size: 12px; }
+        #receipt-canvas { 
+            background: white; 
+            width: 80mm; 
+            padding: 2mm; 
+            color: black; 
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 16px; /* Ukuran font sedikit diperbesar untuk 80mm */
+            line-height: 1.1; 
+        }
+        pre { white-space: pre-wrap; font-family: inherit; margin: 0; width: 100%; }
+        #print-status { display: none; margin-top: 10px; color: #60a5fa; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="bg-blue-600 text-white p-5 sticky top-0 z-40 flex justify-between items-center shadow-lg">
-        <div><h1 id="shopDisplay" class="font-black text-lg uppercase">KASIR PRO</h1><p class="text-[9px] opacity-70">STABLE BLUETOOTH V42.0</p></div>
-        <button onclick="switchTab('ambil')" class="bg-blue-700 px-4 py-2 rounded-xl text-xs font-bold border border-blue-400 uppercase">System</button>
+        <div><h1 id="shopDisplay" class="font-black text-lg uppercase">KASIR PRO</h1><p class="text-[9px] opacity-70">ULTRA WIDE 80MM V42.1</p></div>
+        <button onclick="switchTab('ambil')" class="bg-blue-700 px-4 py-2 rounded-xl text-xs font-bold border border-blue-400">MENU</button>
     </div>
 
     <div class="max-w-md mx-auto px-4 mt-6">
@@ -30,13 +37,13 @@
                 <select id="prodSelect" class="w-full bg-slate-50 p-4 rounded-2xl font-black text-sm outline-none border-2 border-slate-200 focus:border-blue-500"></select>
                 <div class="flex gap-2">
                     <input type="number" id="saleQty" value="1" class="w-24 bg-slate-50 p-4 rounded-2xl text-center font-black border-2 border-slate-200">
-                    <button onclick="addSaleItem()" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-md active:bg-blue-700">TAMBAH</button>
+                    <button onclick="addSaleItem()" class="flex-1 bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-md">TAMBAH</button>
                 </div>
             </div>
             <div id="saleList" class="space-y-2"></div>
             <div class="bg-slate-900 text-white p-6 rounded-[2.5rem] shadow-2xl space-y-4">
                 <div class="flex justify-between items-center px-2">
-                    <span class="text-[10px] font-bold opacity-50 uppercase">Total</span>
+                    <span class="text-[10px] font-bold opacity-50 uppercase text-blue-300">Total Tagihan</span>
                     <span class="text-3xl font-black text-blue-400">Rp <span id="displayTotal">0</span></span>
                 </div>
                 <input type="number" id="salePay" placeholder="NOMINAL BAYAR" class="w-full bg-slate-800 p-5 rounded-2xl text-emerald-400 font-black text-center text-2xl outline-none border-2 border-slate-700">
@@ -45,23 +52,23 @@
         </div>
 
         <div id="sec-retur" class="hidden space-y-4">
-            <button onclick="printStockAudit()" class="w-full bg-white text-blue-600 border-2 border-blue-600 py-4 rounded-2xl font-black uppercase text-xs shadow-sm">📊 LAPORAN AUDIT STOK</button>
+            <button onclick="printStockAudit()" class="w-full bg-white text-blue-600 border-2 border-blue-600 py-4 rounded-2xl font-black uppercase text-xs shadow-sm">📊 CETAK LAPORAN 80MM</button>
             <div class="bg-white p-5 rounded-3xl border-2 border-blue-100 space-y-3 shadow-sm">
                 <input type="text" id="mngNama" placeholder="NAMA BARANG" class="w-full p-3 bg-slate-50 rounded-xl border font-bold text-sm uppercase">
                 <div class="flex gap-2">
                     <input type="number" id="mngHarga" placeholder="HARGA" class="flex-1 p-3 bg-slate-50 rounded-xl border font-bold text-sm">
                     <input type="number" id="mngStok" placeholder="STOK" class="w-24 p-3 bg-slate-50 rounded-xl border font-bold text-sm">
                 </div>
-                <button onclick="updateMasterData()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-xs">Simpan Database</button>
+                <button onclick="updateMasterData()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-xs">Simpan Data</button>
             </div>
             <div id="inventoryList" class="space-y-2"></div>
         </div>
-        
+
         <div id="sec-laporan" class="hidden space-y-3"><div id="historyList" class="space-y-3"></div></div>
         <div id="sec-ambil" class="hidden space-y-6">
             <div class="bg-white p-6 rounded-3xl border-2 border-slate-200">
-                <input type="text" id="cfgNama" class="w-full p-4 rounded-xl font-bold border-2 mb-4">
-                <button onclick="saveSettings()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black">SAVE</button>
+                <input type="text" id="cfgNama" class="w-full p-4 rounded-xl font-bold border-2 mb-4" placeholder="NAMA TOKO">
+                <button onclick="saveSettings()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black">SIMPAN PROFIL</button>
             </div>
         </div>
     </div>
@@ -70,10 +77,10 @@
         <div id="receipt-canvas" class="shadow-2xl">
             <pre id="receipt-content"></pre>
         </div>
-        <div id="print-status">Sedang mengirim data...</div>
+        <div id="print-status">Mengirim Data ke Printer 80mm...</div>
         <div class="grid grid-cols-1 gap-3 w-full max-w-xs mt-6 px-4">
             <button onclick="connectAndPrint()" id="btnPrint" class="bg-blue-600 text-white py-5 rounded-2xl font-black text-sm uppercase shadow-xl">
-                📲 CONNECT & PRINT
+                📲 HUBUNGKAN & CETAK
             </button>
             <button onclick="closePreview()" class="bg-white text-black py-3 rounded-xl font-bold text-xs uppercase border">KEMBALI</button>
         </div>
@@ -87,8 +94,11 @@
     </div>
 
     <script>
+        // CONFIG KONSTANTA UNTUK 80MM
+        const CHAR_PER_LINE = 48; // Standar printer 80mm
+
         let inventory = JSON.parse(localStorage.getItem('v41_stok')) || [];
-        let config = JSON.parse(localStorage.getItem('v41_conf')) || { nama: "TOKO KITA" };
+        let config = JSON.parse(localStorage.getItem('v41_conf')) || { nama: "KASIR PRO 80MM" };
         let historyTrx = JSON.parse(localStorage.getItem('v41_hist')) || [];
         let tempCart = [];
 
@@ -98,8 +108,11 @@
             updateDropdown();
         }
 
+        // Helper untuk merapikan teks berdasarkan lebar baris
         function pad(text, length, type = 'right') {
             text = text.toString();
+            if (text.length > length) text = text.substring(0, length);
+            
             if (type === 'right') return text.padEnd(length, ' ');
             if (type === 'left') return text.padStart(length, ' ');
             if (type === 'center') {
@@ -110,7 +123,6 @@
             return text;
         }
 
-        // --- CORE FIX: CHUNKED PRINTING UNTUK STABILITAS ---
         async function connectAndPrint() {
             const btn = document.getElementById('btnPrint');
             const status = document.getElementById('print-status');
@@ -119,34 +131,27 @@
             try {
                 btn.disabled = true;
                 status.style.display = 'block';
-
                 const device = await navigator.bluetooth.requestDevice({
                     filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
                     optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
                 });
-
                 const server = await device.gatt.connect();
                 const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
                 const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-
+                
                 const encoder = new TextEncoder();
                 const data = encoder.encode(text + "\n\n\n\n\n");
                 
-                // Kirim per 20 byte (MTU standar Bluetooth Low Energy)
                 const chunkSize = 20;
                 for (let i = 0; i < data.length; i += chunkSize) {
                     const chunk = data.slice(i, i + chunkSize);
                     await characteristic.writeValue(chunk);
-                    // Beri jeda 50ms agar buffer printer tidak penuh
-                    await new Promise(resolve => setTimeout(resolve, 50));
+                    await new Promise(r => setTimeout(r, 40));
                 }
-
-                status.innerText = "Selesai Mencetak!";
-                setTimeout(() => { status.style.display = 'none'; btn.disabled = false; }, 2000);
-                
-            } catch (error) {
-                console.error(error);
-                alert("Bluetooth Error: Pastikan printer menyala.");
+                status.innerText = "Selesai!";
+                setTimeout(() => { status.style.display = 'none'; btn.disabled = false; closePreview(); }, 1500);
+            } catch (e) {
+                alert("Gagal konek printer.");
                 btn.disabled = false;
                 status.style.display = 'none';
             }
@@ -155,7 +160,7 @@
         function processTransaction() {
             const tot = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0);
             const pay = parseInt(document.getElementById('salePay').value) || 0;
-            if(tot === 0 || pay < tot) return alert("Nominal bayar kurang!");
+            if(tot === 0 || pay < tot) return alert("Cek pembayaran!");
 
             const trx = {
                 id: "INV" + Date.now().toString().slice(-6),
@@ -172,20 +177,27 @@
             localStorage.setItem('v41_stok', JSON.stringify(inventory));
             localStorage.setItem('v41_hist', JSON.stringify(historyTrx));
 
-            let s = `\n${pad(config.nama, 32, 'center')}\n`;
-            s += `================================\n`;
-            s += `ID: ${trx.id}  ${trx.date}\n`;
-            s += `--------------------------------\n`;
+            // FORMAT 80MM (48 Karakter)
+            const line = "=".repeat(CHAR_PER_LINE);
+            const dash = "-".repeat(CHAR_PER_LINE);
+
+            let s = `\n${pad(config.nama, CHAR_PER_LINE, 'center')}\n`;
+            s += `${line}\n`;
+            s += `TGL: ${trx.date}\nID : ${trx.id}\n`;
+            s += `${dash}\n`;
+            
             trx.items.forEach(it => {
                 s += `${it.name.toUpperCase()}\n`;
-                s += `${pad(it.qty + " x " + it.price.toLocaleString(), 16)} ${pad((it.price*it.qty).toLocaleString(), 15, 'left')}\n`;
+                // Kolom: Qty x Harga (30 char) | Subtotal (18 char)
+                s += `${pad(it.qty + " x " + it.price.toLocaleString(), 30)} ${pad((it.price*it.qty).toLocaleString(), 17, 'left')}\n`;
             });
-            s += `================================\n`;
-            s += `${pad("TOTAL JUAL", 16)} ${pad(tot.toLocaleString(), 15, 'left')}\n`;
-            s += `${pad("BAYAR", 16)} ${pad(pay.toLocaleString(), 15, 'left')}\n`;
-            s += `${pad("KEMBALI", 16)} ${pad(trx.change.toLocaleString(), 15, 'left')}\n`;
-            s += `--------------------------------\n`;
-            s += `${pad("TERIMA KASIH", 32, 'center')}\n`;
+
+            s += `${line}\n`;
+            s += `${pad("TOTAL BELANJA", 30)} ${pad(tot.toLocaleString(), 17, 'left')}\n`;
+            s += `${pad("TUNAI", 30)} ${pad(pay.toLocaleString(), 17, 'left')}\n`;
+            s += `${pad("KEMBALIAN", 30)} ${pad(trx.change.toLocaleString(), 17, 'left')}\n`;
+            s += `${dash}\n`;
+            s += `${pad("TERIMA KASIH", CHAR_PER_LINE, 'center')}\n`;
 
             document.getElementById('receipt-content').innerText = s;
             document.getElementById('preview-modal').style.display = 'flex';
@@ -196,25 +208,34 @@
 
         function printStockAudit() {
             let totalOmzet = 0;
-            let s = `\n${pad("AUDIT STOK & OMZET", 32, 'center')}\n`;
-            s += `${pad(config.nama, 32, 'center')}\n`;
-            s += `================================\n`;
-            s += `AWAL  SISA  LAKU   OMZET (Rp)\n`;
-            s += `--------------------------------\n`;
+            const line = "=".repeat(CHAR_PER_LINE);
+            const dash = "-".repeat(CHAR_PER_LINE);
+
+            let s = `\n${pad("LAPORAN AUDIT STOK & OMZET", CHAR_PER_LINE, 'center')}\n`;
+            s += `${pad(config.nama, CHAR_PER_LINE, 'center')}\n`;
+            s += `${line}\n`;
+            // Header Tabel Audit 80mm
+            s += `${pad("NAMA BARANG", 20)}${pad("AWAL", 7)}${pad("SISA", 7)}${pad("LAKU", 7)}${pad("OMZET", 7)}\n`;
+            s += `${dash}\n`;
             
             inventory.forEach(it => {
                 const laku = it.sold || 0;
                 const awal = it.qty + laku;
                 const omz = laku * it.price;
                 totalOmzet += omz;
-                s += `${it.name.toUpperCase()}\n`;
-                s += `${pad(awal, 6)}${pad(it.qty, 6)}${pad(laku, 7)}${pad(omz.toLocaleString(), 13, 'left')}\n`;
+                
+                // Baris 1: Nama Barang
+                s += `${pad(it.name.toUpperCase(), CHAR_PER_LINE)}\n`;
+                // Baris 2: Detail Angka
+                s += `${pad("", 20)}${pad(awal, 7)}${pad(it.qty, 7)}${pad(laku, 7)}${pad(omz.toLocaleString(), 7, 'left')}\n`;
             });
 
-            s += `================================\n`;
-            s += `TOTAL OMZET: Rp ${totalOmzet.toLocaleString()}\n\n`;
-            s += `PENGAMBIL       PEMILIK\n\n\n`;
-            s += `(________)     (________)\n`;
+            s += `${line}\n`;
+            s += `${pad("GRAND TOTAL OMZET", 30)} Rp ${pad(totalOmzet.toLocaleString(), 14, 'left')}\n\n`;
+            
+            // Kolom Tanda Tangan 80mm
+            s += `${pad("PENGAMBIL,", 24, 'center')}${pad("PEMILIK/PEGAWAI,", 24, 'center')}\n\n\n\n`;
+            s += `${pad("(____________)", 24, 'center')}${pad("(____________)", 24, 'center')}\n`;
 
             document.getElementById('receipt-content').innerText = s;
             document.getElementById('preview-modal').style.display = 'flex';
@@ -231,14 +252,14 @@
             else { inventory.push({ name: nama, price: harga, qty: stok, sold: 0 }); }
             localStorage.setItem('v41_stok', JSON.stringify(inventory));
             renderStock(); updateDropdown();
-            document.getElementById('mngNama').value = '';
+            document.getElementById('mngNama').value = ''; document.getElementById('mngHarga').value = ''; document.getElementById('mngStok').value = '';
         }
 
         function renderStock() {
             document.getElementById('inventoryList').innerHTML = inventory.map((it, i) => `
                 <div class="bg-white p-4 rounded-xl border flex justify-between shadow-sm">
                     <div><b>${it.name}</b><br><span class="text-xs text-blue-600">Rp ${it.price.toLocaleString()} | Sisa: ${it.qty}</span></div>
-                    <button onclick="editItem('${it.name}', ${it.price}, ${it.qty})" class="text-blue-500 font-bold text-xs">EDIT</button>
+                    <button onclick="editItem('${it.name}', ${it.price}, ${it.qty})" class="text-blue-500 font-bold text-xs uppercase">Edit</button>
                 </div>
             `).join('');
         }
@@ -276,7 +297,7 @@
         }
 
         function renderCart() {
-            document.getElementById('saleList').innerHTML = tempCart.map((c, i) => `<div class="bg-white p-4 rounded-2xl flex justify-between border shadow-sm"><span>${c.name} (${c.qty})</span><button onclick="tempCart.splice(${i},1);renderCart();" class="text-red-500 font-black px-3">×</button></div>`).join('');
+            document.getElementById('saleList').innerHTML = tempCart.map((c, i) => `<div class="bg-white p-4 rounded-2xl flex justify-between border shadow-sm items-center"><span>${c.name} (${c.qty})</span><button onclick="tempCart.splice(${i},1);renderCart();" class="text-red-500 font-black p-2">×</button></div>`).join('');
             const tot = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0);
             document.getElementById('displayTotal').innerText = tot.toLocaleString();
         }
