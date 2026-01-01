@@ -3,22 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kasir Pro V41.6</title>
+    <title>Kasir Pro V41.8 - Signature Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body { background-color: #f1f5f9; font-family: sans-serif; padding-bottom: 100px; }
         .tab-active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: 900; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #e2e8f0; z-index: 50; }
+        
         #preview-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; flex-direction: column; align-items: center; padding: 10px; overflow-y: auto; }
-        #receipt-canvas { background: white; width: 80mm; padding: 15px; color: black; font-family: monospace; font-size: 13px; }
+        #receipt-canvas { 
+            background: white; 
+            width: 80mm; 
+            padding: 10px; 
+            color: black; 
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 13px; 
+            line-height: 1.2;
+        }
+        .line { border-top: 1px dashed black; margin: 5px 0; }
+        .line-double { border-top: 3px double black; margin: 5px 0; }
+        table { width: 100%; border-collapse: collapse; }
     </style>
 </head>
 <body>
 
     <div class="bg-blue-600 text-white p-5 sticky top-0 z-40 flex justify-between items-center shadow-lg">
-        <div><h1 id="shopDisplay" class="font-black text-lg uppercase">KASIR PRO</h1><p class="text-[9px] opacity-70">80MM PRINT COMMAND V41.6</p></div>
-        <button onclick="switchTab('ambil')" class="bg-blue-700 px-4 py-2 rounded-xl text-xs font-bold border border-blue-400">SISTEM</button>
+        <div><h1 id="shopDisplay" class="font-black text-lg uppercase">KASIR PRO</h1><p class="text-[9px] opacity-70">REPORT SIGNATURE V41.8</p></div>
+        <button onclick="switchTab('ambil')" class="bg-blue-700 px-4 py-2 rounded-xl text-xs font-bold border border-blue-400 uppercase">System</button>
     </div>
 
     <div class="max-w-md mx-auto px-4 mt-6">
@@ -32,41 +44,30 @@
             </div>
             <div id="saleList" class="space-y-2"></div>
             <div class="bg-slate-900 text-white p-6 rounded-[2.5rem] shadow-2xl space-y-4">
-                <div class="flex justify-between items-center"><span class="text-[10px] font-bold opacity-50 uppercase">Total</span><span class="text-3xl font-black text-blue-400">Rp <span id="displayTotal">0</span></span></div>
-                <input type="number" id="salePay" oninput="calculateChange()" placeholder="BAYAR" class="w-full bg-slate-800 p-5 rounded-2xl text-emerald-400 font-black text-center text-2xl outline-none border-2 border-slate-700 focus:border-emerald-500">
-                <div class="flex justify-between px-2 font-bold text-orange-400 uppercase text-xs"><span>Kembalian</span><span>Rp <span id="displayChange">0</span></span></div>
-                <button onclick="processTransaction()" class="w-full bg-blue-600 py-5 rounded-2xl font-black uppercase tracking-widest shadow-lg active:bg-blue-700">SIMPAN & CETAK</button>
+                <div class="flex justify-between items-center"><span class="text-[10px] font-bold opacity-50 uppercase">Tagihan</span><span class="text-3xl font-black text-blue-400">Rp <span id="displayTotal">0</span></span></div>
+                <input type="number" id="salePay" oninput="calculateChange()" placeholder="BAYAR" class="w-full bg-slate-800 p-5 rounded-2xl text-emerald-400 font-black text-center text-2xl outline-none border-2 border-slate-700">
+                <button onclick="processTransaction()" class="w-full bg-blue-600 py-5 rounded-2xl font-black uppercase tracking-widest shadow-lg">SIMPAN & CETAK</button>
             </div>
         </div>
 
         <div id="sec-retur" class="hidden space-y-4">
-            <button onclick="printStockReport()" class="w-full bg-white text-blue-600 border-2 border-blue-600 py-4 rounded-2xl font-black uppercase text-xs shadow-sm">📊 CETAK LAPORAN STOK (80mm)</button>
-            
-            <div class="bg-white p-5 rounded-3xl border-2 border-blue-500/20 shadow-sm space-y-3">
-                <h3 class="font-black text-xs uppercase text-blue-600">Update Stok/Harga</h3>
+            <button onclick="printStockAudit()" class="w-full bg-white text-blue-600 border-2 border-blue-600 py-4 rounded-2xl font-black uppercase text-xs shadow-sm">📊 CETAK AUDIT STOK & TANDA TANGAN</button>
+            <div class="bg-white p-5 rounded-3xl border-2 border-blue-100 space-y-3">
                 <input type="text" id="mngNama" placeholder="NAMA BARANG" class="w-full p-3 bg-slate-50 rounded-xl border font-bold text-sm uppercase">
                 <div class="flex gap-2">
                     <input type="number" id="mngHarga" placeholder="HARGA" class="flex-1 p-3 bg-slate-50 rounded-xl border font-bold text-sm">
-                    <input type="number" id="mngStok" placeholder="STOK" class="w-20 p-3 bg-slate-50 rounded-xl border font-bold text-sm">
+                    <input type="number" id="mngStok" placeholder="STOK" class="w-24 p-3 bg-slate-50 rounded-xl border font-bold text-sm">
                 </div>
-                <button onclick="updateMasterData()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-xs">Simpan Perubahan</button>
+                <button onclick="updateMasterData()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-xs">Simpan Data</button>
             </div>
             <div id="inventoryList" class="space-y-2"></div>
         </div>
 
-        <div id="sec-laporan" class="hidden space-y-3">
-            <div id="historyList" class="space-y-3"></div>
-        </div>
-
+        <div id="sec-laporan" class="hidden space-y-3"><div id="historyList" class="space-y-3"></div></div>
         <div id="sec-ambil" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-3xl border-2 space-y-4">
+            <div class="bg-white p-6 rounded-3xl border-2 space-y-4 shadow-sm">
                 <input type="text" id="cfgNama" placeholder="NAMA TOKO" class="w-full p-4 rounded-xl font-bold border-2">
-                <button onclick="saveSettings()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase text-xs uppercase">Update Profil</button>
-                <div class="grid grid-cols-2 gap-3 mt-4">
-                    <button onclick="exportCSV()" class="bg-slate-100 p-3 rounded-xl font-bold text-[10px] border">💾 Export CSV</button>
-                    <button onclick="document.getElementById('importInput').click()" class="bg-slate-100 p-3 rounded-xl font-bold text-[10px] border">📂 Import CSV</button>
-                    <input type="file" id="importInput" class="hidden" accept=".csv" onchange="importCSV(event)">
-                </div>
+                <button onclick="saveSettings()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase text-xs uppercase">Simpan Profil</button>
             </div>
         </div>
     </div>
@@ -77,7 +78,7 @@
         </div>
         <div class="grid grid-cols-1 gap-3 w-full max-w-xs mt-6 px-4">
             <button onclick="sendDataToPrinter()" class="bg-blue-600 text-white py-5 rounded-2xl font-black text-sm uppercase shadow-xl">📲 HUBUNGKAN & CETAK KERTAS</button>
-            <button onclick="closePreview()" class="bg-white text-black py-3 rounded-xl font-bold text-xs uppercase">TUTUP</button>
+            <button onclick="closePreview()" class="bg-white text-black py-3 rounded-xl font-bold text-xs uppercase border">KEMBALI</button>
         </div>
     </div>
 
@@ -90,10 +91,9 @@
 
     <script>
         let inventory = JSON.parse(localStorage.getItem('v41_stok')) || [];
-        let config = JSON.parse(localStorage.getItem('v41_conf')) || { nama: "KASIR PRO" };
+        let config = JSON.parse(localStorage.getItem('v41_conf')) || { nama: "KASIR PROFESIONAL" };
         let historyTrx = JSON.parse(localStorage.getItem('v41_hist')) || [];
         let tempCart = [];
-        let printerCharacteristic = null;
 
         function init() {
             document.getElementById('cfgNama').value = config.nama;
@@ -101,60 +101,64 @@
             updateDropdown();
         }
 
-        // --- SOLUSI MASALAH 1: ENCODER TEXT UNTUK PRINTER ---
-        async function sendDataToPrinter() {
-            try {
-                const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
-                    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
-                });
-                
-                const server = await device.gatt.connect();
-                const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-                const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-
-                // Ambil teks dari preview dan konversi ke Uint8Array agar kertas keluar
-                const receiptText = document.getElementById('receipt-content').innerText;
-                const encoder = new TextEncoder();
-                const data = encoder.encode(receiptText + "\n\n\n\n"); // Feed kertas
-                
-                await characteristic.writeValue(data);
-                alert("Perintah cetak dikirim!");
-            } catch (error) {
-                alert("Gagal Cetak: Pastikan Bluetooth Aktif & Printer Mendukung Raw Data.");
-            }
-        }
-
-        // --- SOLUSI MASALAH 2: LAPORAN STOK ---
-        function printStockReport() {
-            let totalAset = 0;
+        // --- 1. MODIFIKASI: LAPORAN STOK DENGAN TANDA TANGAN ---
+        function printStockAudit() {
+            let totalOmzet = 0;
             const rows = inventory.map(it => {
-                const sub = it.price * it.qty;
-                totalAset += sub;
-                return `<tr><td>${it.name.substring(0,15)}</td><td align="center">${it.qty}</td><td align="right">${it.price.toLocaleString()}</td></tr>`;
+                const terjual = it.sold || 0;
+                const stokAwal = (it.qty + terjual);
+                const omzet = terjual * it.price;
+                totalOmzet += omzet;
+                return `
+                    <tr><td colspan="4" style="padding-top:8px;"><b>${it.name.toUpperCase()}</b></td></tr>
+                    <tr style="font-size:11px; text-align:center;">
+                        <td>${stokAwal}</td><td>${it.qty}</td><td>${terjual}</td><td align="right">${omzet.toLocaleString()}</td>
+                    </tr>
+                `;
             }).join('');
 
             document.getElementById('receipt-content').innerHTML = `
-                <center><b>LAPORAN STOK BARANG</b><br>${config.nama}</center>
-                <div style="border-top:1px solid black; margin:5px 0;"></div>
-                <table style="width:100%; font-size:11px;">
-                    <tr><th>BARANG</th><th>STOK</th><th align="right">HARGA</th></tr>
+                <div style="text-align:center;">
+                    <b style="font-size:16px;">AUDIT STOK & OMZET</b><br>${config.nama}
+                </div>
+                <div class="line"></div>
+                <div style="font-size:10px;">DICETAK: ${new Date().toLocaleString()}</div>
+                <div class="line-double"></div>
+                <table>
+                    <tr style="font-size:10px; border-bottom:1px solid black;">
+                        <th align="center">AWAL</th><th align="center">SISA</th><th align="center">LAKU</th><th align="right">OMZET</th>
+                    </tr>
                     ${rows}
                 </table>
-                <div style="border-top:1px solid black; margin:5px 0;"></div>
-                <table style="width:100%; font-size:12px; font-weight:bold;">
-                    <tr><td>TOTAL ASET</td><td align="right">Rp ${totalAset.toLocaleString()}</td></tr>
+                <div class="line-double" style="margin-top:10px;"></div>
+                <table style="font-weight:bold;">
+                    <tr><td>TOTAL OMZET</td><td align="right">Rp ${totalOmzet.toLocaleString()}</td></tr>
                 </table>
-                <div style="font-size:10px; margin-top:10px; text-align:center;">Dicetak: ${new Date().toLocaleString()}</div>
+                
+                <div style="margin-top:30px;">
+                    <table style="width:100%; font-size:11px; text-align:center;">
+                        <tr>
+                            <td style="width:50%;">PENGAMBIL,</td>
+                            <td style="width:50%;">PEMILIK/PEGAWAI,</td>
+                        </tr>
+                        <tr><td style="height:50px;"></td><td style="height:50px;"></td></tr>
+                        <tr>
+                            <td>( ____________ )</td>
+                            <td>( ____________ )</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div style="text-align:center; font-size:9px; margin-top:20px;">* Dokumen Sah Internal Kasir Pro</div>
             `;
             document.getElementById('preview-modal').style.display = 'flex';
         }
 
-        // --- SISTEM TRANSAKSI ---
+        // --- SISTEM TRANSAKSI KASIR (Layout Profesional) ---
         function processTransaction() {
             const tot = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0);
             const pay = parseInt(document.getElementById('salePay').value) || 0;
-            if(tot === 0 || pay < tot) return alert("Cek Keranjang/Pembayaran!");
+            if(tot === 0 || pay < tot) return alert("Cek Keranjang!");
 
             const trx = {
                 id: "INV" + Date.now().toString().slice(-6),
@@ -165,7 +169,7 @@
 
             trx.items.forEach(c => {
                 const it = inventory.find(i => i.name === c.name);
-                if(it) it.qty -= c.qty;
+                if(it) { it.qty -= c.qty; it.sold = (it.sold || 0) + c.qty; }
             });
 
             historyTrx.unshift(trx);
@@ -173,62 +177,62 @@
             localStorage.setItem('v41_hist', JSON.stringify(historyTrx));
 
             document.getElementById('receipt-content').innerHTML = `
-                <center><b style="font-size:18px;">${config.nama}</b><br>BUKTI PEMBAYARAN</center>
-                <div style="border-top:1px dashed black; margin:8px 0;"></div>
-                <div style="font-size:11px;">NO: ${trx.id}<br>TGL: ${trx.date}</div>
-                <div style="border-top:1px dashed black; margin:8px 0;"></div>
-                <table style="width:100%; font-size:12px;">
+                <div style="text-align:center;"><b style="font-size:18px;">${config.nama}</b><br>STRUK BELANJA</div>
+                <div class="line"></div>
+                <table style="font-size:11px;"><tr><td>NO: ${trx.id}</td><td align="right">${trx.date}</td></tr></table>
+                <div class="line-double"></div>
+                <table>
                     ${trx.items.map(it => `
-                        <tr><td colspan="2">${it.name.toUpperCase()}</td></tr>
-                        <tr><td>${it.qty} x ${it.price.toLocaleString()}</td><td align="right">${(it.price*it.qty).toLocaleString()}</td></tr>
+                        <tr><td colspan="3" style="padding-top:5px;"><b>${it.name.toUpperCase()}</b></td></tr>
+                        <tr><td>@${it.price.toLocaleString()}</td><td align="center">${it.qty}</td><td align="right">Rp ${(it.price*it.qty).toLocaleString()}</td></tr>
                     `).join('')}
                 </table>
-                <div style="border-top:1px dashed black; margin:8px 0;"></div>
-                <table style="width:100%; font-size:14px; font-weight:bold;">
-                    <tr><td>TOTAL</td><td align="right">Rp ${trx.total.toLocaleString()}</td></tr>
-                    <tr style="font-weight:normal; font-size:11px;"><td>BAYAR</td><td align="right">${trx.pay.toLocaleString()}</td></tr>
-                    <tr style="font-weight:normal; font-size:11px;"><td>KEMBALI</td><td align="right">${trx.change.toLocaleString()}</td></tr>
-                </table>
-                <div style="border-top:1px dashed black; margin:8px 0;"></div>
-                <center style="font-size:11px;">TERIMA KASIH</center>
+                <div class="line-double" style="margin-top:10px;"></div>
+                <table style="font-weight:bold; font-size:15px;"><tr><td>TOTAL</td><td align="right">Rp ${tot.toLocaleString()}</td></tr></table>
+                <div class="line"></div>
+                <div style="text-align:center; font-size:10px; margin-top:10px;">TERIMA KASIH</div>
             `;
             
             document.getElementById('preview-modal').style.display = 'flex';
-            sendDataToPrinter(); // Otomatis panggil popup
-            
+            sendDataToPrinter();
             tempCart = []; renderCart(); updateDropdown();
             document.getElementById('salePay').value = '';
         }
 
-        // --- KELOLA DATA ---
+        async function sendDataToPrinter() {
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
+                    optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+                });
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+                const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+                const encoder = new TextEncoder();
+                const data = encoder.encode(document.getElementById('receipt-content').innerText + "\n\n\n\n\n");
+                await characteristic.writeValue(data);
+            } catch (e) { console.log(e); }
+        }
+
+        // --- FUNGSI PENDUKUNG ---
         function updateMasterData() {
             const nama = document.getElementById('mngNama').value.trim().toUpperCase();
             const harga = parseInt(document.getElementById('mngHarga').value) || 0;
             const stok = parseInt(document.getElementById('mngStok').value) || 0;
-            if(!nama || harga <= 0) return alert("Nama & Harga wajib diisi!");
-
+            if(!nama) return;
             const idx = inventory.findIndex(i => i.name === nama);
-            if(idx > -1) {
-                inventory[idx].price = harga;
-                inventory[idx].qty = stok;
-            } else {
-                inventory.push({ name: nama, price: harga, qty: stok });
-            }
+            if(idx > -1) { inventory[idx].price = harga; inventory[idx].qty = stok; }
+            else { inventory.push({ name: nama, price: harga, qty: stok, sold: 0 }); }
             localStorage.setItem('v41_stok', JSON.stringify(inventory));
-            alert("Data Disimpan");
-            document.getElementById('mngNama').value = '';
-            document.getElementById('mngHarga').value = '';
-            document.getElementById('mngStok').value = '';
-            renderStock(); updateDropdown();
+            renderStock(); updateDropdown(); alert("Update Berhasil!");
         }
 
         function renderStock() {
             document.getElementById('inventoryList').innerHTML = inventory.map((it, i) => `
                 <div class="bg-white p-4 rounded-xl border flex justify-between items-center shadow-sm">
-                    <div><b class="text-xs uppercase">${it.name}</b><div class="text-[10px] text-blue-600 font-bold">Rp ${it.price.toLocaleString()} | Stok: ${it.qty}</div></div>
+                    <div><b class="text-xs uppercase">${it.name}</b><div class="text-[10px] text-blue-600">Rp ${it.price.toLocaleString()} | Sisa: ${it.qty}</div></div>
                     <div class="flex gap-2">
                         <button onclick="editItem('${it.name}', ${it.price}, ${it.qty})" class="text-blue-500 text-[10px] font-bold">EDIT</button>
-                        <button onclick="deleteStock(${i})" class="text-red-500 text-[10px] font-bold uppercase">X</button>
                     </div>
                 </div>
             `).join('');
@@ -241,24 +245,19 @@
             window.scrollTo(0,0);
         }
 
-        function deleteStock(i) {
-            if(confirm("Hapus?")) { inventory.splice(i,1); localStorage.setItem('v41_stok', JSON.stringify(inventory)); renderStock(); updateDropdown(); }
-        }
-
-        // --- FUNGSI DASAR ---
         function switchTab(t) {
             ['sec-kasir','sec-retur','sec-ambil','sec-laporan'].forEach(s => document.getElementById(s).classList.add('hidden'));
             ['t-kasir','t-retur','t-ambil','t-laporan'].forEach(b => document.getElementById(b).classList.remove('tab-active'));
             document.getElementById('sec-'+t).classList.remove('hidden');
             document.getElementById('t-'+t).classList.add('tab-active');
-            if(t === 'retur') renderStock();
-            if(t === 'laporan') renderHistory();
+            if(t==='retur') renderStock();
+            if(t==='laporan') renderHistory();
         }
 
         function updateDropdown() {
             const s = document.getElementById('prodSelect');
             s.innerHTML = '<option value="">- PILIH PRODUK -</option>';
-            inventory.forEach((it, i) => s.innerHTML += `<option value="${i}">${it.name} [Rp ${it.price.toLocaleString()}]</option>`);
+            inventory.forEach((it, i) => s.innerHTML += `<option value="${i}">${it.name} [Stok:${it.qty}]</option>`);
         }
 
         function addSaleItem() {
@@ -266,13 +265,13 @@
             if(idx === "") return;
             const qty = parseInt(document.getElementById('saleQty').value) || 1;
             if(qty > inventory[idx].qty) return alert("Stok kurang!");
-            const exist = tempCart.find(c => c.name === inventory[idx].name);
-            if(exist) exist.qty += qty; else tempCart.push({name: inventory[idx].name, price: inventory[idx].price, qty: qty});
+            const ex = tempCart.find(c => c.name === inventory[idx].name);
+            if(ex) ex.qty += qty; else tempCart.push({name: inventory[idx].name, price: inventory[idx].price, qty: qty});
             renderCart();
         }
 
         function renderCart() {
-            document.getElementById('saleList').innerHTML = tempCart.map((c, i) => `<div class="bg-white p-4 rounded-2xl flex justify-between shadow-sm border"><span>${c.name} (${c.qty})</span><button onclick="tempCart.splice(${i},1);renderCart();" class="text-red-500 font-bold">×</button></div>`).join('');
+            document.getElementById('saleList').innerHTML = tempCart.map((c, i) => `<div class="bg-white p-4 rounded-2xl flex justify-between border shadow-sm"><span>${c.name} (${c.qty})</span><button onclick="tempCart.splice(${i},1);renderCart();" class="text-red-500 font-bold px-3">×</button></div>`).join('');
             const tot = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0);
             document.getElementById('displayTotal').innerText = tot.toLocaleString();
             calculateChange();
@@ -281,34 +280,11 @@
         function calculateChange() {
             const tot = tempCart.reduce((a,b)=>a+(b.price*b.qty), 0);
             const pay = parseInt(document.getElementById('salePay').value) || 0;
-            document.getElementById('displayChange').innerText = (pay >= tot) ? (pay-tot).toLocaleString() : "0";
+            document.getElementById('displayChange').innerText = (pay>=tot) ? (pay-tot).toLocaleString() : "0";
         }
 
         function renderHistory() {
-            document.getElementById('historyList').innerHTML = historyTrx.map((t) => `<div class="bg-white p-4 rounded-xl border shadow-sm"><div class="text-[10px] font-bold text-slate-400">${t.id} | ${t.date}</div><div class="text-blue-700 font-black">Rp ${t.total.toLocaleString()}</div></div>`).join('');
-        }
-
-        function importCSV(e) {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const text = event.target.result;
-                const lines = text.split('\n');
-                let newInv = [];
-                for(let i=0; i<lines.length; i++) {
-                    const cols = lines[i].split(lines[i].includes(';') ? ';' : ',');
-                    if(cols.length >= 2) newInv.push({ name: cols[0].trim().toUpperCase(), price: parseInt(cols[1].replace(/[^\d]/g,'')), qty: parseInt(cols[2]||0) });
-                }
-                inventory = newInv; localStorage.setItem('v41_stok', JSON.stringify(inventory)); location.reload();
-            };
-            reader.readAsText(file);
-        }
-
-        function exportCSV() {
-            let csv = "Nama,Harga,Stok\n";
-            inventory.forEach(it => csv += `${it.name},${it.price},${it.qty}\n`);
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Database_Kasir.csv'; a.click();
+            document.getElementById('historyList').innerHTML = historyTrx.map(t => `<div class="bg-white p-4 rounded-xl border shadow-sm"><div class="text-[10px] text-slate-400 font-bold">${t.id} | ${t.date}</div><div class="text-blue-700 font-black">Rp ${t.total.toLocaleString()}</div></div>`).join('');
         }
 
         function saveSettings() {
