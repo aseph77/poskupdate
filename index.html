@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KASIR PRO V52.9.8</title>
+    <title>KASIR PRO V52.9.9</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
@@ -20,7 +20,7 @@
 
     <div id="preview-overlay">
         <div class="flex flex-col w-full items-center">
-            <div id="receipt-content" class="receipt-paper shadow-2xl"></div>
+            <div id="receipt-content" class="receipt-paper shadow-2xl border-2 border-dashed border-slate-400"></div>
             <div class="flex gap-2 w-full max-w-[420px] mt-4">
                 <button onclick="closePreview()" class="flex-1 bg-slate-700 text-white py-4 rounded-xl font-black">BATAL</button>
                 <button onclick="executePrint()" class="flex-1 bg-blue-600 text-white py-4 rounded-xl font-black">CETAK</button>
@@ -30,7 +30,7 @@
 
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-[9998] flex items-center justify-center p-6 text-white text-center">
         <div class="bg-white text-slate-900 p-8 rounded-[2.5rem] w-full max-w-sm">
-            <h2 class="text-3xl font-black mb-6 text-blue-600 uppercase">KASIR PRO</h2>
+            <h2 class="text-3xl font-black mb-6 text-blue-600 uppercase italic">PRO V9</h2>
             <div class="space-y-4">
                 <input type="text" id="loginUser" placeholder="USERNAME" class="border-2 p-3 rounded-xl w-full uppercase font-bold outline-none border-slate-200">
                 <input type="password" id="loginPass" placeholder="PASSWORD" class="border-2 p-3 rounded-xl w-full outline-none border-slate-200">
@@ -90,30 +90,31 @@
                     <div class="grid grid-cols-1 gap-2">
                         <div class="flex gap-2">
                             <div class="relative flex-1 bg-emerald-600 text-white p-3 rounded-xl font-black text-[10px] text-center uppercase">
-                                📥 IMPORT EXCEL <input type="file" id="excelIn" accept=".xlsx" onchange="importExcel(this)" class="absolute inset-0 opacity-0">
+                                📥 IMPORT <input type="file" id="excelIn" accept=".xlsx" onchange="importExcel(this)" class="absolute inset-0 opacity-0">
                             </div>
-                            <button onclick="exportExcel()" class="flex-1 bg-orange-500 text-white p-3 rounded-xl font-black text-[10px] uppercase">📤 EXPORT EXCEL</button>
+                            <button onclick="exportExcel()" class="flex-1 bg-orange-500 text-white p-3 rounded-xl font-black text-[10px] uppercase">📤 EXPORT</button>
                         </div>
-                        <button onclick="showPreview('audit')" class="w-full bg-slate-900 text-white p-3 rounded-xl font-black text-[10px] uppercase">PREVIEW FAKTUR AUDIT</button>
+                        <button onclick="showPreview('audit')" class="w-full bg-slate-900 text-white p-3 rounded-xl font-black text-[10px] uppercase">FAKTUR AUDIT (STOK)</button>
                     </div>
                 </div>
                 <div id="invList" class="space-y-2"></div>
             </section>
 
             <section id="sec-admin" class="hidden space-y-4">
-                <div class="bg-white p-6 rounded-[2rem] border-2 space-y-4">
+                <div class="bg-white p-6 rounded-[2rem] border-2 space-y-4 shadow-sm">
                     <h3 class="font-black text-xs uppercase text-blue-600">Profil Toko</h3>
-                    <input type="text" id="cfgN" placeholder="NAMA TOKO" class="border-2 p-3 rounded-xl w-full">
+                    <input type="text" id="cfgN" placeholder="NAMA TOKO" class="border-2 p-3 rounded-xl w-full font-bold">
                     <input type="text" id="cfgA" placeholder="ALAMAT" class="border-2 p-3 rounded-xl w-full">
-                    <textarea id="cfgL" placeholder="PESAN STRUK" class="border-2 p-3 rounded-xl w-full"></textarea>
-                    <button onclick="saveCfg()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase">UPDATE</button>
+                    <input type="text" id="cfgP" placeholder="NO HP / WA" class="border-2 p-3 rounded-xl w-full">
+                    <textarea id="cfgL" placeholder="PESAN PENUTUP (FOOTER)" class="border-2 p-3 rounded-xl w-full"></textarea>
+                    <button onclick="saveCfg()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-black uppercase">UPDATE PROFIL</button>
                 </div>
                 <div class="bg-white p-6 rounded-[2rem] border-2 space-y-4">
                     <h3 class="font-black text-xs uppercase text-blue-600">Manajemen Akun</h3>
                     <div id="userList" class="space-y-2 mb-4"></div>
                     <div class="space-y-2 pt-2 border-t">
-                        <input type="text" id="newU" placeholder="NEW USERNAME" class="border-2 p-3 rounded-xl w-full text-xs">
-                        <input type="password" id="newP" placeholder="NEW PASSWORD" class="border-2 p-3 rounded-xl w-full text-xs">
+                        <input type="text" id="newU" placeholder="USERNAME BARU" class="border-2 p-3 rounded-xl w-full text-xs">
+                        <input type="password" id="newP" placeholder="PASSWORD BARU" class="border-2 p-3 rounded-xl w-full text-xs">
                         <select id="newRole" class="border-2 p-3 rounded-xl w-full text-xs font-bold uppercase">
                             <option value="kasir">AKSES KASIR</option>
                             <option value="admin">AKSES ADMIN</option>
@@ -121,7 +122,7 @@
                         <button onclick="addAcct()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-black uppercase text-xs">BUAT AKUN</button>
                     </div>
                 </div>
-                <button onclick="wipeAll()" class="w-full bg-red-100 text-red-600 py-4 rounded-xl font-black text-[10px] border border-red-200 uppercase">HAPUS SELURUH DATA SISTEM</button>
+                <button onclick="wipeAll()" class="w-full bg-red-100 text-red-600 py-4 rounded-xl font-black text-[10px] border border-red-200 uppercase shadow-sm">HAPUS SELURUH DATA SISTEM</button>
             </section>
 
             <section id="sec-hist" class="hidden space-y-2"><div id="hList" class="space-y-2"></div></section>
@@ -137,13 +138,13 @@
 
     <script>
         let btChar = null, curUser = null, curPrintData = null, selectedUnit = 'BKS';
-        let users = JSON.parse(localStorage.getItem('v8_u')) || [{u:'admin', p:'admin', r:'admin'}];
-        let inventory = JSON.parse(localStorage.getItem('v8_s')) || [];
-        let config = JSON.parse(localStorage.getItem('v8_c')) || { n: "NAMA TOKO", a: "ALAMAT TOKO", l: "TERIMA KASIH" };
-        let history = JSON.parse(localStorage.getItem('v8_h')) || [];
+        let users = JSON.parse(localStorage.getItem('v9_u')) || [{u:'admin', p:'admin', r:'admin'}];
+        let inventory = JSON.parse(localStorage.getItem('v9_s')) || [];
+        let config = JSON.parse(localStorage.getItem('v9_c')) || { n: "NAMA TOKO", a: "ALAMAT TOKO", p: "0812-xxx", l: "TERIMA KASIH" };
+        let history = JSON.parse(localStorage.getItem('v9_h')) || [];
         let cart = [];
 
-        const L = 48; // Standard Pro Character Width
+        const L = 48;
 
         const pad = (t, n, al='left') => { t = (t||"").toString().substring(0, n); return al === 'left' ? t.padEnd(n, ' ') : t.padStart(n, ' '); };
         const center = (t, n) => { t = (t||"").toString().substring(0, n); const x = n - t.length; return ' '.repeat(Math.floor(x/2)) + t + ' '.repeat(Math.ceil(x/2)); };
@@ -161,10 +162,10 @@
                 document.querySelectorAll('.admin-only').forEach(e => e.style.display = found.r === 'admin' ? 'flex' : 'none');
                 document.getElementById('shopDisp').innerText = config.n;
                 renderAll();
-            } else alert("USER/PASS SALAH");
+            } else alert("AKSES DITOLAK");
         }
 
-        function handleLogout() { if(confirm("Log Out?")) location.reload(); }
+        function handleLogout() { if(confirm("Keluar dari aplikasi?")) location.reload(); }
 
         function showPreview(type, oldData = null) {
             let s = "";
@@ -179,7 +180,7 @@
                 };
                 if(!oldData && (data.tot === 0 || data.pay < data.tot)) return alert("BAYAR KURANG");
 
-                s = `${center(config.n, L)}\n${center(config.a, L)}\n${center(data.ts, L)}\n${"=".repeat(L)}\n`;
+                s = `${center(config.n, L)}\n${center(config.a, L)}\n${center("TELP: "+config.p, L)}\n${center(data.ts, L)}\n${"=".repeat(L)}\n`;
                 if(oldData) s += `${center("*** SALINAN STRUK ***", L)}\n`;
                 s += `KASIR: ${curUser.u.toUpperCase()}\nPELANGGAN: ${data.cust}\n${"-".repeat(L)}\n`;
                 data.items.forEach(it => {
@@ -191,14 +192,24 @@
             else if(type === 'audit') {
                 let grand = 0;
                 s = `${center(config.n, L)}\n${center("LAPORAN AUDIT STOK", L)}\n${center(ts, L)}\n${"=".repeat(L)}\n`;
-                s += `${pad("NAMA", 7)} ${pad("AWAL", 8)} ${pad("SISA", 8)} ${pad("LAKU", 8)} ${pad("OMZET", 13, 'right')}\n${"-".repeat(L)}\n`;
+                // Header Audit disesuaikan (NAMA 11 Karakter)
+                s += `${pad("NAMA", 11)} ${pad("AWAL", 6)} ${pad("SISA", 6)} ${pad("LAKU", 6)} ${pad("OMZET", 15, 'right')}\n${"-".repeat(L)}\n`;
                 inventory.forEach(it => {
                     grand += (it.rev || 0);
-                    s += `${pad(it.name, 7)} ${pad(it.qty+(it.sld||0), 8)} ${pad(it.qty, 8)} ${pad(it.sld||0, 8)} ${pad((it.rev||0).toLocaleString(), 13, 'right')}\n`;
+                    s += `${pad(it.name, 11)} ${pad(it.qty+(it.sld||0), 6)} ${pad(it.qty, 6)} ${pad(it.sld||0, 6)} ${pad((it.rev||0).toLocaleString(), 15, 'right')}\n`;
                 });
                 s += `${"=".repeat(L)}\nTOTAL OMZET: Rp ${grand.toLocaleString()}\n\n`;
-                const b = `+${"-".repeat(22)}+`;
-                s += `${b}${b}\n|${center("PENGAMBIL", 22)}||${center("PEMILIK", 22)}|\n|${" ".repeat(22)}||${" ".repeat(22)}|\n|${" ".repeat(22)}||${" ".repeat(22)}|\n${b}${b}`;
+                
+                // Kotak Tanda Tangan dengan Tinggi Lebih
+                const line = `+${"-".repeat(22)}+`;
+                const space = `|${" ".repeat(22)}|`;
+                s += `${line}${line}\n`;
+                s += `|${center("PENGAMBIL", 22)}||${center("PEMILIK", 22)}|\n`;
+                s += `${space}${space}\n`;
+                s += `${space}${space}\n`;
+                s += `${space}${space}\n`;
+                s += `${space}${space}\n`;
+                s += `${line}${line}`;
                 curPrintData = { type: 'audit', content: s };
             }
             document.getElementById('receipt-content').innerText = s;
@@ -206,14 +217,14 @@
         }
 
         async function executePrint() {
-            if(!btChar) return alert("KONEKSIKAN PRINTER DULU");
+            if(!btChar) return alert("SAMBUNGKAN PRINTER");
             try {
                 const enc = new TextEncoder();
                 const lines = (curPrintData.content + "\n\n\n\n").split('\n');
                 for (let l of lines) await btChar.writeValue(enc.encode(l + "\n"));
                 if(curPrintData.type === 'trx' && !curPrintData.isReprint) finalizeTrx(curPrintData.raw);
                 closePreview(); renderAll();
-            } catch (e) { alert("PRINT GAGAL"); }
+            } catch (e) { alert("ERROR BLUETOOTH"); }
         }
 
         function finalizeTrx(data) {
@@ -227,19 +238,19 @@
                 }
             });
             history.unshift(data);
-            localStorage.setItem('v8_s', JSON.stringify(inventory));
-            localStorage.setItem('v8_h', JSON.stringify(history));
+            localStorage.setItem('v9_s', JSON.stringify(inventory));
+            localStorage.setItem('v9_h', JSON.stringify(history));
             cart = []; document.getElementById('payInput').value = "";
         }
 
         function renderAll() {
-            document.getElementById('prodSelect').innerHTML = '<option value="">- PILIH BARANG -</option>' + inventory.map((it,i) => `<option value="${i}">${it.name} (Stok: ${it.qty})</option>`).join('');
-            document.getElementById('invList').innerHTML = inventory.map(it => `<div class="bg-white p-3 rounded-xl border flex justify-between text-xs"><b>${it.name}</b><span>Sisa: ${it.qty} | Laku: ${it.sld||0}</span></div>`).join('');
-            document.getElementById('cartList').innerHTML = cart.map((c,i) => `<div class="bg-white p-3 rounded-xl flex justify-between text-xs border"><span>${c.name} (${c.qty} ${c.unit})</span><button onclick="cart.splice(${i},1);renderAll()" class="text-red-500 font-bold">HAPUS</button></div>`).join('');
+            document.getElementById('prodSelect').innerHTML = '<option value="">- PILIH PRODUK -</option>' + inventory.map((it,i) => `<option value="${i}">${it.name} (Stok: ${it.qty})</option>`).join('');
+            document.getElementById('invList').innerHTML = inventory.map(it => `<div class="bg-white p-3 rounded-xl border flex justify-between text-xs"><b>${it.name}</b><span>Stok: ${it.qty} | Omzet: ${it.rev.toLocaleString()}</span></div>`).join('');
+            document.getElementById('cartList').innerHTML = cart.map((c,i) => `<div class="bg-white p-3 rounded-xl flex justify-between text-xs border"><span>${c.name} (${c.qty} ${c.unit})</span><button onclick="cart.splice(${i},1);renderAll()" class="text-red-500 font-bold uppercase">Hapus</button></div>`).join('');
             document.getElementById('totDisp').innerText = cart.reduce((a,b)=>a+(b.prc*b.qty), 0).toLocaleString();
-            document.getElementById('hList').innerHTML = history.slice(0,15).map(h => `<div class="bg-white p-4 rounded-xl border flex justify-between items-center text-[10px]"><div><b>${h.cust}</b><br>${h.ts}<br>Rp ${h.tot.toLocaleString()}</div><button onclick='showPreview("trx", ${JSON.stringify(h)})' class="bg-blue-600 text-white px-3 py-2 rounded-lg font-bold">CETAK ULANG</button></div>`).join('');
-            document.getElementById('userList').innerHTML = users.map((u,i) => `<div class="flex justify-between items-center text-xs bg-slate-50 p-2 rounded-lg"><span>${u.u.toUpperCase()} [${u.r}]</span> ${i!==0?`<button onclick="users.splice(${i},1);localStorage.setItem('v8_u',JSON.stringify(users));renderAll()" class="text-red-500 font-bold">HAPUS</button>`:''}</div>`).join('');
-            document.getElementById('cfgN').value = config.n; document.getElementById('cfgA').value = config.a; document.getElementById('cfgL').value = config.l;
+            document.getElementById('hList').innerHTML = history.slice(0,15).map(h => `<div class="bg-white p-4 rounded-xl border flex justify-between items-center text-[10px]"><div><b>${h.cust}</b><br>${h.ts}<br>Rp ${h.tot.toLocaleString()}</div><button onclick='showPreview("trx", ${JSON.stringify(h)})' class="bg-blue-600 text-white px-3 py-2 rounded-lg font-bold">CETAK</button></div>`).join('');
+            document.getElementById('userList').innerHTML = users.map((u,i) => `<div class="flex justify-between items-center text-xs bg-slate-50 p-2 rounded-lg border"><span>${u.u.toUpperCase()} [${u.r}]</span> ${i!==0?`<button onclick="users.splice(${i},1);localStorage.setItem('v9_u',JSON.stringify(users));renderAll()" class="text-red-500 font-bold">HAPUS</button>`:''}</div>`).join('');
+            document.getElementById('cfgN').value = config.n; document.getElementById('cfgA').value = config.a; document.getElementById('cfgP').value = config.p; document.getElementById('cfgL').value = config.l;
         }
 
         function importExcel(el) {
@@ -248,21 +259,21 @@
                 const d = new Uint8Array(e.target.result); const wb = XLSX.read(d, {type:'array'});
                 const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
                 inventory = json.map(j => ({ name: String(j.Nama).toUpperCase(), pB: j.HrgBks||0, pP: j.HrgPak||0, pL: j.HrgBall||0, qty: j.Stok||0, sld:0, rev:0 }));
-                localStorage.setItem('v8_s', JSON.stringify(inventory)); renderAll(); alert("IMPORT BERHASIL");
+                localStorage.setItem('v9_s', JSON.stringify(inventory)); renderAll(); alert("IMPORT SELESAI");
             }; r.readAsArrayBuffer(f);
         }
 
         function exportExcel() {
-            const ws = XLSX.utils.json_to_sheet(inventory.map(it => ({ Nama: it.name, HrgBks: it.pB, HrgPak: it.pP, HrgBall: it.pL, SisaStok: it.qty, Terjual: it.sld, Omzet: it.rev })));
-            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "STOK");
-            XLSX.writeFile(wb, `STOK_LAPORAN_${new Date().getTime()}.xlsx`);
+            const ws = XLSX.utils.json_to_sheet(inventory.map(it => ({ Nama: it.name, HrgBks: it.pB, HrgPak: it.pP, HrgBall: it.pL, Sisa: it.qty, Terjual: it.sld, Omzet: it.rev })));
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "DATA_STOK");
+            XLSX.writeFile(wb, `LAPORAN_STOK_${new Date().getTime()}.xlsx`);
         }
 
         function addNewItem() {
             const n = document.getElementById('stkName').value.toUpperCase();
             if(!n) return;
             inventory.push({ name: n, pB: parseInt(document.getElementById('stkBks').value)||0, pP: parseInt(document.getElementById('stkPak').value)||0, pL: parseInt(document.getElementById('stkBall').value)||0, qty: parseInt(document.getElementById('stkQty').value)||0, sld: 0, rev: 0 });
-            localStorage.setItem('v8_s', JSON.stringify(inventory)); renderAll();
+            localStorage.setItem('v9_s', JSON.stringify(inventory)); renderAll();
             ['stkName','stkBks','stkPak','stkBall','stkQty'].forEach(id => document.getElementById(id).value="");
         }
 
@@ -271,11 +282,11 @@
             const p = document.getElementById('newP').value.trim();
             const r = document.getElementById('newRole').value;
             if(!u || !p) return;
-            users.push({u, p, r}); localStorage.setItem('v8_u', JSON.stringify(users)); renderAll();
+            users.push({u, p, r}); localStorage.setItem('v9_u', JSON.stringify(users)); renderAll();
             document.getElementById('newU').value = ""; document.getElementById('newP').value = "";
         }
 
-        function wipeAll() { if(confirm("HAPUS PERMANEN SEMUA DATA?")) { localStorage.clear(); location.reload(); } }
+        function wipeAll() { if(confirm("HAPUS PERMANEN SEMUA DATA SISTEM?")) { localStorage.clear(); location.reload(); } }
         function setPas() { document.getElementById('payInput').value = document.getElementById('totDisp').innerText; }
         function tab(t) {
             ['kasir','stok','admin','hist'].forEach(k => { document.getElementById('sec-'+k).classList.add('hidden'); document.getElementById('t-'+k).classList.remove('tab-active'); });
@@ -289,9 +300,9 @@
                 const sc = await srv.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
                 btChar = await sc.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
                 document.getElementById('btStat').innerText = "✅ TERHUBUNG";
-            } catch (e) { alert("BLUETOOTH ERROR"); }
+            } catch (e) { alert("BT ERROR"); }
         }
-        function saveCfg() { config = { n: document.getElementById('cfgN').value, a: document.getElementById('cfgA').value, l: document.getElementById('cfgL').value }; localStorage.setItem('v8_c', JSON.stringify(config)); alert("OK"); location.reload(); }
+        function saveCfg() { config = { n: document.getElementById('cfgN').value, a: document.getElementById('cfgA').value, p: document.getElementById('cfgP').value, l: document.getElementById('cfgL').value }; localStorage.setItem('v9_c', JSON.stringify(config)); alert("PROFIL DISIMPAN"); location.reload(); }
         function formatRp(e) { let v = e.value.replace(/[^,\d]/g,''); e.value = v ? parseInt(v).toLocaleString('id-ID') : ''; }
         function closePreview() { document.getElementById('preview-overlay').style.display = 'none'; }
         function setUnit(u) { selectedUnit = u; ['BKS','PAK','BALL'].forEach(v => document.getElementById('u-'+v).className = v === u ? 'flex-1 p-3 border-2 border-blue-600 bg-blue-50 rounded-xl font-black text-[10px]' : 'flex-1 p-3 border-2 rounded-xl font-black text-[10px]'); }
