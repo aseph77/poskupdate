@@ -3,15 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kasir Pro V41.8</title>
+    <title>Kasir Pro V41.9</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; padding-bottom: 90px; }
-        #receipt-canvas { background: white; width: 80mm; padding: 20px; color: black; font-family: 'Courier New', monospace; margin: 0 auto; }
+        body { background-color: #f1f5f9; font-family: 'Inter', sans-serif; padding-bottom: 90px; }
+        
+        /* Layout Struk 80mm V41.7 */
+        #receipt-canvas { 
+            background: white; 
+            width: 80mm; 
+            padding: 20px; 
+            color: black; 
+            font-family: 'Courier New', Courier, monospace; 
+            margin: 0 auto;
+        }
+
+        #preview-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; }
         .tab-active { border-bottom: 4px solid #2563eb; color: #2563eb; font-weight: 900; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #e2e8f0; z-index: 50; }
-        #preview-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            #receipt-canvas, #receipt-canvas * { visibility: visible; }
+            #receipt-canvas { position: absolute; left: 0; top: 0; width: 80mm !important; }
+        }
     </style>
 </head>
 <body>
@@ -20,50 +36,62 @@
         <div id="receipt-canvas" class="shadow-2xl">
             <div id="receipt-content" style="font-size: 14px; line-height: 1.4;"></div>
         </div>
-        <div class="grid grid-cols-1 gap-3 w-full max-w-xs mt-6 px-4">
-            <button onclick="connectAndPrint()" class="bg-blue-600 text-white py-5 rounded-2xl font-black text-sm uppercase shadow-xl flex items-center justify-center gap-2">
-                📲 PILIH PERANGKAT PRINTER
+        
+        <div class="grid grid-cols-1 gap-3 w-full max-w-xs mt-8">
+            <button onclick="connectBluetooth()" class="bg-blue-600 text-white py-5 rounded-2xl font-black text-sm uppercase shadow-xl flex items-center justify-center gap-2">
+                📲 PILIH PRINTER BLUETOOTH
             </button>
-            <button onclick="window.print()" class="bg-emerald-600 text-white py-4 rounded-2xl font-black text-[10px] uppercase">
-                📄 CETAK SISTEM (PDF/WIFI)
+            <button onclick="window.print()" class="bg-white/20 text-white py-4 rounded-2xl font-black text-xs uppercase border border-white/40">
+                📄 SIMPAN PDF / CETAK SISTEM
             </button>
-            <button onclick="closePreview()" class="bg-white/20 text-white py-4 rounded-2xl font-black text-xs uppercase border border-white/40">
+            <button onclick="closePreview()" class="bg-red-500/20 text-red-400 py-3 rounded-xl font-bold text-xs uppercase">
                 TUTUP
             </button>
         </div>
     </div>
 
-    <div class="bg-slate-900 text-white p-5 sticky top-0 z-40 flex justify-between items-center shadow-md">
-        <div><h1 id="shopTitle" class="font-black text-lg uppercase tracking-tight">KASIR PRO</h1><p class="text-[9px] text-blue-400 font-bold">BLUETOOTH V41.8 • 80MM</p></div>
-        <button onclick="switchTab('ambil')" class="bg-slate-800 p-3 rounded-2xl text-lg">⚙️</button>
+    <div class="bg-blue-700 text-white p-5 sticky top-0 z-40 flex justify-between items-center shadow-lg">
+        <div><h1 id="shopTitle" class="font-black text-lg uppercase tracking-tight">KASIR PRO</h1><p class="text-[10px] opacity-70">HYBRID SYSTEM V41.9 • 80MM</p></div>
+        <button onclick="switchTab('ambil')" class="bg-blue-800 p-3 rounded-xl text-sm border border-blue-500">⚙️</button>
     </div>
 
     <div class="max-w-md mx-auto px-4 mt-6">
         <div id="sec-kasir" class="space-y-4">
-            <div class="bg-white p-5 rounded-[2rem] shadow-sm border space-y-3">
-                <select id="prodSelect" class="w-full bg-slate-50 p-4 rounded-2xl font-black text-sm border-2 border-slate-100 outline-none"></select>
+            <div class="bg-white p-5 rounded-3xl shadow-sm border space-y-3">
+                <select id="prodSelect" class="w-full bg-slate-50 p-4 rounded-2xl font-black text-sm border-2 border-slate-100 outline-none focus:border-blue-500"></select>
                 <div class="flex gap-2">
                     <input type="number" id="saleQty" value="1" class="w-20 bg-slate-50 p-4 rounded-2xl text-center font-black border-2 border-slate-100">
                     <button onclick="addItem()" class="flex-1 bg-blue-600 text-white rounded-2xl font-black uppercase shadow-lg">TAMBAH</button>
                 </div>
             </div>
+
             <div id="cartItems" class="space-y-2"></div>
+
             <div class="bg-slate-900 text-white p-6 rounded-[2.5rem] shadow-2xl space-y-4">
-                <div class="flex justify-between items-center"><span class="text-[10px] font-bold opacity-40 uppercase">Total</span><span class="text-3xl font-black text-blue-400">Rp <span id="totalTxt">0</span></span></div>
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] font-bold opacity-40 uppercase">Tagihan</span>
+                    <span class="text-3xl font-black text-blue-400">Rp <span id="totalTxt">0</span></span>
+                </div>
                 <input type="number" id="payInput" oninput="calcChange()" placeholder="BAYAR" class="w-full bg-slate-800 p-5 rounded-2xl text-emerald-400 font-black text-center text-2xl outline-none border-2 border-slate-700">
-                <div class="flex justify-between font-bold text-orange-400 px-2"><span class="text-xs">KEMBALI</span><span>Rp <span id="changeTxt">0</span></span></div>
+                <div class="flex justify-between font-bold text-orange-400 px-2">
+                    <span class="text-xs">KEMBALI</span>
+                    <span>Rp <span id="changeTxt">0</span></span>
+                </div>
                 <button onclick="checkout()" class="w-full bg-blue-600 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl">SIMPAN & CETAK</button>
             </div>
         </div>
 
-        <div id="sec-retur" class="hidden space-y-4"><div id="stockList" class="space-y-2"></div></div>
+        <div id="sec-retur" class="hidden space-y-4">
+            <button onclick="runAudit()" class="w-full bg-white text-blue-600 border-2 border-blue-600 py-4 rounded-2xl font-black uppercase text-xs">📊 GENERATE AUDIT 80MM</button>
+            <div id="stockList" class="space-y-2"></div>
+        </div>
 
         <div id="sec-ambil" class="hidden space-y-4">
             <div class="bg-white p-6 rounded-3xl border space-y-4">
                 <input type="text" id="storeName" placeholder="NAMA TOKO" class="w-full p-4 bg-slate-50 rounded-xl font-bold border">
-                <button onclick="saveStore()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase text-xs">Simpan Toko</button>
+                <button onclick="saveStore()" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase text-xs">Simpan Nama Toko</button>
                 <hr>
-                <button onclick="document.getElementById('fileIn').click()" class="w-full bg-emerald-600 text-white p-4 rounded-xl font-bold text-xs uppercase">📂 IMPORT CSV</button>
+                <button onclick="document.getElementById('fileIn').click()" class="w-full bg-emerald-600 text-white p-4 rounded-xl font-bold text-xs uppercase">📂 IMPORT DATA CSV</button>
                 <input type="file" id="fileIn" class="hidden" onchange="importData(event)">
             </div>
         </div>
@@ -80,10 +108,9 @@
 
     <script>
         let db = JSON.parse(localStorage.getItem('v41_data')) || [];
-        let conf = JSON.parse(localStorage.getItem('v41_conf')) || { name: "TOKO SAYA", hp: "08XX" };
+        let conf = JSON.parse(localStorage.getItem('v41_conf')) || { name: "KASIR TOKO", hp: "08XX" };
         let history = JSON.parse(localStorage.getItem('v41_hist')) || [];
         let cart = [];
-        let bluetoothDevice = null;
 
         function init() {
             document.getElementById('storeName').value = conf.name;
@@ -91,28 +118,24 @@
             updateDropdown();
         }
 
-        // --- CORE BLUETOOTH POP-UP ---
-        async function connectAndPrint() {
+        // --- BLUETOOTH POPUP (V41.8 Logic) ---
+        async function connectBluetooth() {
             try {
-                // Memunculkan Pop-up pilih perangkat bluetooth browser
-                bluetoothDevice = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }], // UUID standar printer thermal
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
                     optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
                 });
-                
-                const server = await bluetoothDevice.gatt.connect();
-                alert("Terhubung ke " + bluetoothDevice.name);
-                // Proses pengiriman data ke printer bisa dilanjutkan di sini
-            } catch (error) {
-                console.log("Bluetooth Error: " + error);
-                alert("Pencarian dibatalkan atau Bluetooth tidak didukung di browser ini.");
+                alert("Berhasil terhubung ke: " + device.name);
+            } catch (err) {
+                alert("Pencarian dibatalkan atau bluetooth tidak aktif.");
             }
         }
 
+        // --- TRANSAKSI & 80MM (V41.7 Layout) ---
         function checkout() {
             const total = cart.reduce((a, b) => a + (b.price * b.qty), 0);
             const pay = parseInt(document.getElementById('payInput').value) || 0;
-            if (total === 0 || pay < total) return alert("Cek Keranjang/Pembayaran!");
+            if (total === 0 || pay < total) return alert("Cek Keranjang & Pembayaran!");
 
             const trx = {
                 id: "INV" + Date.now().toString().slice(-6),
@@ -121,7 +144,6 @@
                 total: total, pay: pay, change: pay - total
             };
 
-            // Update stok
             trx.items.forEach(c => {
                 const i = db.find(d => d.name === c.name);
                 if(i) { i.qty -= c.qty; i.sold = (i.sold || 0) + c.qty; }
@@ -131,28 +153,31 @@
             localStorage.setItem('v41_data', JSON.stringify(db));
             localStorage.setItem('v41_hist', JSON.stringify(history));
 
-            // Template Struk 80mm
             const html = `
                 <div style="text-align:center; margin-bottom:15px;">
-                    <b style="font-size:20px;">${conf.name}</b><br>80MM THERMAL PRINTER
+                    <b style="font-size:20px;">${conf.name}</b><br>KERTAS LEBAR 80MM
                 </div>
-                <div style="border-top:1px dashed #000; margin:10px 0;"></div>
-                <div style="font-size:12px;">NO: ${trx.id} | ${trx.date}</div>
-                <div style="border-top:1px dashed #000; margin:10px 0;"></div>
+                <div style="border-top:1px dashed #000; margin:8px 0;"></div>
+                <table style="width:100%; font-size:13px;">
+                    <tr><td>NOTA: ${trx.id}</td><td align="right">${trx.date}</td></tr>
+                </table>
+                <div style="border-top:1px dashed #000; margin:8px 0;"></div>
                 <table style="width:100%; font-size:14px;">
                     ${trx.items.map(it => `
                         <tr><td colspan="2"><b>${it.name.toUpperCase()}</b></td></tr>
                         <tr><td>${it.qty} x ${it.price.toLocaleString()}</td><td align="right">Rp ${(it.price*it.qty).toLocaleString()}</td></tr>
                     `).join('')}
                 </table>
-                <div style="border-top:1px dashed #000; margin:10px 0;"></div>
+                <div style="border-top:1px dashed #000; margin:8px 0;"></div>
                 <table style="width:100%; font-size:16px; font-weight:bold;">
                     <tr><td>TOTAL</td><td align="right">Rp ${total.toLocaleString()}</td></tr>
-                    <tr style="font-size:13px; font-weight:normal;"><td>TUNAI</td><td align="right">${pay.toLocaleString()}</td></tr>
-                    <tr style="font-size:13px; font-weight:normal;"><td>KEMBALI</td><td align="right">${trx.change.toLocaleString()}</td></tr>
                 </table>
+                <div style="font-size:13px;">
+                    <div>BAYAR : ${pay.toLocaleString()}</div>
+                    <div>KEMBALI : ${trx.change.toLocaleString()}</div>
+                </div>
                 <div style="border-top:1px dashed #000; margin:10px 0;"></div>
-                <div style="text-align:center; margin-top:15px; font-size:12px;">TERIMA KASIH</div>
+                <div style="text-align:center; font-size:12px;">TERIMA KASIH</div>
             `;
 
             document.getElementById('receipt-content').innerHTML = html;
@@ -162,7 +187,7 @@
             document.getElementById('payInput').value = "";
         }
 
-        // --- LOGIC LAINNYA ---
+        // --- SISTEM PENDUKUNG ---
         function switchTab(t) {
             ['sec-kasir','sec-retur','sec-ambil','sec-laporan'].forEach(s => document.getElementById(s).classList.add('hidden'));
             ['t-kasir','t-retur','t-ambil','t-laporan'].forEach(b => document.getElementById(b).classList.remove('tab-active'));
@@ -175,7 +200,7 @@
         function updateDropdown() {
             const s = document.getElementById('prodSelect');
             s.innerHTML = '<option value="">- PILIH BARANG -</option>';
-            db.forEach((it, i) => s.innerHTML += `<option value="${i}">${it.name} [${it.qty}]</option>`);
+            db.forEach((it, i) => s.innerHTML += `<option value="${i}">${it.name} [Stok:${it.qty}]</option>`);
         }
 
         function addItem() {
@@ -189,7 +214,7 @@
         }
 
         function renderCart() {
-            document.getElementById('cartItems').innerHTML = cart.map((c, i) => `<div class="bg-white p-4 rounded-2xl flex justify-between border shadow-sm"><span class="text-xs font-black uppercase">${c.name} (${c.qty})</span><button onclick="cart.splice(${i},1);renderCart()" class="text-red-500">×</button></div>`).join('');
+            document.getElementById('cartItems').innerHTML = cart.map((c, i) => `<div class="bg-white p-4 rounded-2xl flex justify-between shadow-sm border"><span>${c.name} (${c.qty})</span><button onclick="cart.splice(${i},1);renderCart()" class="text-red-500 font-bold">×</button></div>`).join('');
             const t = cart.reduce((a,b) => a+(b.price*b.qty), 0);
             document.getElementById('totalTxt').innerText = t.toLocaleString();
             calcChange();
@@ -202,16 +227,26 @@
         }
 
         function renderStock() {
-            document.getElementById('stockList').innerHTML = db.map((it, i) => `<div class="bg-white p-4 rounded-xl border flex justify-between items-center"><b class="text-xs uppercase">${it.name} (${it.qty})</b><button onclick="db.splice(${i},1);localStorage.setItem('v41_data',JSON.stringify(db));renderStock()" class="text-red-500 text-[10px]">HAPUS</button></div>`).join('');
+            document.getElementById('stockList').innerHTML = db.map((it, i) => `<div class="bg-white p-4 rounded-xl border flex justify-between"><b>${it.name} (${it.qty})</b><button onclick="db.splice(${i},1);localStorage.setItem('v41_data',JSON.stringify(db));renderStock()" class="text-red-400">HAPUS</button></div>`).join('');
+        }
+
+        function runAudit() {
+            let total = 0;
+            const rows = db.map(it => {
+                const sub = (it.sold || 0) * it.price; total += sub;
+                return `<tr><td>${it.name.substring(0,15)}</td><td align="center">${it.qty}</td><td align="center">${it.sold||0}</td><td align="right">${sub.toLocaleString()}</td></tr>`;
+            }).join('');
+            document.getElementById('receipt-content').innerHTML = `<center><b>LAPORAN AUDIT 80MM</b></center><hr>${rows}<hr><b>TOTAL OMZET: Rp ${total.toLocaleString()}</b>`;
+            document.getElementById('preview-modal').style.display = 'flex';
         }
 
         function renderHistory() {
-            document.getElementById('sec-laporan').innerHTML = history.map((h, i) => `<div class="bg-white p-4 rounded-xl border flex justify-between items-center mb-2"><span class="text-[10px] font-bold">${h.id} - Rp ${h.total.toLocaleString()}</span><button onclick='reprint(${i})' class="bg-slate-800 text-white px-4 py-2 rounded-lg text-[10px]">STRUK</button></div>`).join('');
+            document.getElementById('sec-laporan').innerHTML = history.map((h, i) => `<div class="bg-white p-4 rounded-xl border flex justify-between mb-2"><span>${h.id} - Rp ${h.total.toLocaleString()}</span><button onclick="reprint(${i})" class="bg-slate-800 text-white px-3 py-1 rounded-lg">STRUK</button></div>`).join('');
         }
 
         function reprint(i) {
-            const trx = history[i];
-            // logic reprint struk
+            const h = history[i];
+            document.getElementById('receipt-content').innerHTML = `<center><b>COPY NOTA</b></center><hr>ID: ${h.id}<br>TOTAL: ${h.total.toLocaleString()}`;
             document.getElementById('preview-modal').style.display = 'flex';
         }
 
