@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KASIR PRO CLOUD V52.10.17</title>
+    <title>KASIR PRO CLOUD V52.10.18</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
@@ -13,7 +13,7 @@
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; height: 75px; z-index: 1000; border-top: 1px solid #e2e8f0; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; gap: 4px; border: none; background: none; }
         #preview-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 10px; }
-        .receipt-paper { background: white; width: 100%; max-width: 480px; padding: 40px 10px; font-family: 'Courier New', monospace; white-space: pre; font-size: 13px; line-height: 1.2; color: #000; }
+        .receipt-paper { background: white; width: 100%; max-width: 480px; padding: 40px 10px; font-family: 'Courier New', monospace; white-space: pre; font-size: 12.5px; line-height: 1.2; color: #000; }
     </style>
 </head>
 <body>
@@ -31,7 +31,7 @@
     <div id="login-screen" class="fixed inset-0 bg-slate-900 z-[9998] flex items-center justify-center p-6 text-white">
         <div class="bg-white text-slate-900 p-8 rounded-[2.5rem] w-full max-w-sm text-center shadow-2xl border-4 border-blue-500">
             <h2 class="text-3xl font-black mb-2 text-blue-600 italic uppercase">KASIRKU</h2>
-            <p class="text-[10px] mb-6 font-bold text-slate-400 italic uppercase">Cloud V52.10.17</p>
+            <p class="text-[10px] mb-6 font-bold text-slate-400 italic uppercase">Cloud V52.10.18</p>
             <div class="space-y-4">
                 <input type="text" id="loginUser" placeholder="USERNAME" class="border-2 p-4 rounded-2xl w-full font-bold outline-none border-slate-100 bg-slate-50 uppercase">
                 <input type="password" id="loginPass" placeholder="PASSWORD" class="border-2 p-4 rounded-2xl w-full outline-none border-slate-100 bg-slate-50">
@@ -115,6 +115,7 @@
                     <h3 class="font-black text-blue-600 text-xs uppercase">Profil Toko</h3>
                     <input type="text" id="cfgN" placeholder="NAMA TOKO" class="border-2 p-4 rounded-2xl w-full font-black uppercase">
                     <input type="text" id="cfgA" placeholder="ALAMAT" class="border-2 p-4 rounded-2xl w-full text-sm">
+                    <input type="text" id="cfgP" placeholder="NOMOR HP / WA" class="border-2 p-4 rounded-2xl w-full text-sm">
                     <button onclick="window.saveCfg()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-lg">Simpan Profil</button>
                 </div>
                 <div class="bg-white p-7 rounded-[2.5rem] border shadow-sm space-y-4">
@@ -154,10 +155,9 @@
 
         window.users = []; window.inventory = []; window.config = {}; window.trxHistory = []; window.cart = [];
         window.curUser = null; window.btDevice = null; window.btChar = null; window.selectedUnit = 'BKS';
-        const L = 48; // Lebar total 80mm
-        const M = 44; // Lebar konten (48 - 2 kiri - 2 kanan)
+        const L = 48; 
+        const M = 44; 
 
-        // SYNC
         onValue(ref(db, 'v11/users'), (s) => { 
             window.users = s.val() ? Object.keys(s.val()).map(k => ({...s.val()[k], id: k})) : [{u:'admin', p:'admin', r:'admin'}];
             checkSession(); 
@@ -166,14 +166,17 @@
             const d = s.val(); window.inventory = d ? Object.keys(d).map(k => ({...d[k], id: k})) : []; renderAll(); 
         });
         onValue(ref(db, 'v11/config'), (s) => { 
-            window.config = s.val() || { n: "TOKO KITA", a: "ALAMAT", p: "08", l: "TERIMA KASIH" }; 
+            window.config = s.val() || { n: "TOKO KITA", a: "ALAMAT", p: "-", l: "TERIMA KASIH" }; 
             document.getElementById('shopDisp').innerText = window.config.n.toUpperCase();
+            document.getElementById('cfgN').value = window.config.n;
+            document.getElementById('cfgA').value = window.config.a;
+            document.getElementById('cfgP').value = window.config.p;
         });
         onValue(ref(db, 'v11/history'), (s) => { 
             const d = s.val(); window.trxHistory = d ? Object.keys(d).map(k => ({...d[k], hid: k})).reverse() : []; renderAll(); 
         });
 
-        // BT & PRINT (AUTO DISCONNECT)
+        // PRINT LOGIC
         window.connectBT = async () => {
             try {
                 window.btDevice = await navigator.bluetooth.requestDevice({ filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }], optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] });
@@ -209,20 +212,11 @@
             } catch (e) { alert("Error: " + e.message); }
         };
 
-        // RESET LOGIC
-        window.resetSalesData = () => {
-            if(confirm("RESET SEMUA DATA TERJUAL & OMZET? (Stok Fisik Tetap)")) {
-                window.inventory.forEach(it => update(ref(db, 'v11/inventory/' + it.id), { sld: 0, rev: 0 }));
-                alert("Data Reset Berhasil");
-            }
-        };
-
-        // STRING FORMATTERS (WITH 2 CHAR MARGIN)
-        const row = (txt) => "  " + txt + "  "; // Memberi margin 2 kiri & 2 kanan
+        // DESIGN FORMATTERS
+        const row = (txt) => "  " + txt + "  "; 
         const pad = (t, n, al='left') => { t = (t||"").toString().substring(0, n); return al === 'left' ? t.padEnd(n, ' ') : t.padStart(n, ' '); };
         const center = (t, n) => { t = (t||"").toString().substring(0, n); const x = n - t.length; return ' '.repeat(Math.floor(x/2)) + t + ' '.repeat(Math.ceil(x/2)); };
 
-        // PREVIEW DESIGN (80MM WITH MARGINS)
         window.showPreview = (type, oldData = null) => {
             let s = ""; const dNow = new Date();
             const ts = `${String(dNow.getDate()).padStart(2,'0')}/${String(dNow.getMonth()+1).padStart(2,'0')}/${dNow.getFullYear()} ${String(dNow.getHours()).padStart(2,'0')}:${String(dNow.getMinutes()).padStart(2,'0')}:${String(dNow.getSeconds()).padStart(2,'0')}`;
@@ -233,16 +227,15 @@
                 
                 s += row(center(window.config.n.toUpperCase(), M)) + "\n";
                 s += row(center(window.config.a.toUpperCase(), M)) + "\n";
+                s += row(center("HP: " + window.config.p, M)) + "\n";
                 s += row("-".repeat(M)) + "\n";
-                s += row(pad(`TGL: ${data.ts}`, 25) + pad(`KSR: ${window.curUser.u.toUpperCase()}`, 19, 'right')) + "\n";
+                s += row(pad(`TGL: ${data.ts}`, 24) + pad(`KSR: ${window.curUser.u.toUpperCase()}`, 20, 'right')) + "\n";
                 s += row(`CUST: ${data.cust}`) + "\n";
                 s += row("=".repeat(M)) + "\n";
                 
                 data.items.forEach(it => {
                     s += row(it.name.toUpperCase()) + "\n";
-                    const qPart = `${it.qty} ${it.unit} x ${it.base.toLocaleString()}`;
-                    const pPart = (it.prc * it.qty).toLocaleString();
-                    s += row(pad(qPart, 24) + pad(pPart, 20, 'right')) + "\n";
+                    s += row(pad(`${it.qty} ${it.unit} x ${it.base.toLocaleString()}`, 24) + pad((it.prc*it.qty).toLocaleString(), 20, 'right')) + "\n";
                 });
                 
                 s += row("-".repeat(M)) + "\n";
@@ -259,23 +252,38 @@
                 s += row(center("LAPORAN AUDIT STOK", M)) + "\n";
                 s += row(center(ts, M)) + "\n";
                 s += row("=".repeat(M)) + "\n";
-                s += row(pad("NAMA", 14) + pad("LAKU", 10) + pad("OMZET", 20, 'right')) + "\n";
+                s += row(pad("NAMA", 12) + pad("S.AWL", 6) + pad("SISA", 6) + pad("LAKU", 6) + pad("OMZET", 14, 'right')) + "\n";
                 s += row("-".repeat(M)) + "\n";
+                
                 window.inventory.forEach(it => { 
+                    const laku = it.sld || 0;
+                    const awal = it.qty + laku;
                     grand += (it.rev || 0);
-                    s += row(pad(it.name, 14) + pad(it.sld || 0, 10) + pad((it.rev||0).toLocaleString(), 20, 'right')) + "\n"; 
+                    s += row(pad(it.name, 12) + pad(awal, 6) + pad(it.qty, 6) + pad(laku, 6) + pad((it.rev||0).toLocaleString(), 14, 'right')) + "\n"; 
                 });
+                
                 s += row("=".repeat(M)) + "\n";
                 s += row(pad("TOTAL OMZET", 20) + pad(grand.toLocaleString(), 24, 'right')) + "\n\n";
-                s += row(center("TTD MOTORIS        TTD STOKIS", M)) + "\n\n\n";
-                s += row(center("(           )      (          )", M));
+                
+                // BOX TANDA TANGAN (LEBIH TINGGI)
+                const line = "+" + "-".repeat(20) + "+" + "-".repeat(21) + "+";
+                const empty = "|" + " ".repeat(20) + "|" + " ".repeat(21) + "|";
+                s += row(line) + "\n";
+                s += row("|" + center("MOTORIS", 20) + "|" + center("STOKIS", 21) + "|") + "\n";
+                s += row(empty) + "\n";
+                s += row(empty) + "\n";
+                s += row(empty) + "\n";
+                s += row(empty) + "\n";
+                s += row(line);
+                
                 window.curPrintData = { type:'audit', content:s };
             }
             document.getElementById('receipt-content').innerText = s;
             document.getElementById('preview-overlay').style.display = 'flex';
         };
 
-        // EXCEL HELPERS
+        // RESET & EXCEL
+        window.resetSalesData = () => { if(confirm("Reset omzet & terjual?")) window.inventory.forEach(it => update(ref(db, 'v11/inventory/'+it.id), {sld:0, rev:0})); };
         window.downloadTemplate = () => {
             const ws = XLSX.utils.json_to_sheet([{ Nama: "SAMPLE", HargaBks: 0, HargaPak: 0, HargaBall: 0, Stok: 0 }]);
             const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Kasirku");
@@ -283,34 +291,37 @@
         };
         window.exportExcel = () => {
             const ws = XLSX.utils.json_to_sheet(window.inventory.map(it => ({ Nama: it.name, HargaBks: it.pB, HargaPak: it.pP, HargaBall: it.pL, Stok: it.qty, Terjual: it.sld || 0, Omzet: it.rev || 0 })));
-            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Stok");
-            XLSX.writeFile(wb, "Data_Stok.xlsx");
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "DataStok.xlsx");
+            XLSX.writeFile(wb, "DataStok.xlsx");
         };
         window.importExcel = (e) => {
             const file = e.target.files[0]; if(!file) return;
             const reader = new FileReader();
             reader.onload = (evt) => {
-                const bstr = evt.target.result;
-                const wb = XLSX.read(bstr, {type:'binary'});
-                const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                const data = XLSX.utils.sheet_to_json(XLSX.read(evt.target.result, {type:'binary'}).Sheets[XLSX.read(evt.target.result, {type:'binary'}).SheetNames[0]]);
                 data.forEach(row => {
                     const exist = window.inventory.find(i => i.name === row.Nama);
                     const p = { name: row.Nama, pB: row.HargaBks||0, pP: row.HargaPak||0, pL: row.HargaBall||0, qty: row.Stok||0, sld: 0, rev: 0 };
                     if(exist) update(ref(db, 'v11/inventory/'+exist.id), p);
                     else set(push(ref(db, 'v11/inventory')), p);
                 });
-                alert("Import Berhasil");
+                alert("Ok!");
             };
             reader.readAsBinaryString(file);
         };
 
-        // BASE UI & LOGIC
-        window.tab = (t) => { ['kasir','stok','admin','hist'].forEach(k => { document.getElementById('sec-'+k)?.classList.add('hidden'); document.getElementById('t-'+k)?.classList.remove('tab-active'); }); document.getElementById('sec-'+t).classList.remove('hidden'); document.getElementById('t-'+t).classList.add('tab-active'); };
-        window.formatRp = (e) => { let v = e.value.replace(/\D/g, ''); e.value = v ? parseInt(v).toLocaleString('id-ID') : ''; };
-        window.setUnit = (u) => { window.selectedUnit = u; ['BKS','PAK','BALL'].forEach(v => { const el = document.getElementById('u-'+v); if(el) el.className = (v === u) ? 'flex-1 p-3 border-2 border-blue-600 bg-blue-50 rounded-xl font-black text-[10px]' : 'flex-1 p-3 border-2 rounded-xl font-black text-[10px]'; }); };
-        window.handleProductChange = () => { document.getElementById('unitWrap').classList.toggle('hidden', !document.getElementById('prodSelect').value); window.setUnit('BKS'); };
-        window.closePreview = () => document.getElementById('preview-overlay').style.display = 'none';
-        
+        // ADMIN FUNCTIONS
+        window.saveCfg = () => { 
+            set(ref(db, 'v11/config'), { 
+                n: document.getElementById('cfgN').value.toUpperCase(), 
+                a: document.getElementById('cfgA').value.toUpperCase(), 
+                p: document.getElementById('cfgP').value, 
+                l: window.config.l 
+            }); 
+            alert("Profil Tersimpan!"); 
+        };
+
+        // RENDER & AUTH
         const checkSession = () => {
             const saved = localStorage.getItem('kasirSession');
             if (saved) {
@@ -327,20 +338,24 @@
             const u = document.getElementById('loginUser').value.trim().toLowerCase();
             const p = document.getElementById('loginPass').value.trim();
             const found = window.users.find(x => x.u === u && x.p === p);
-            if(found) { window.curUser = found; localStorage.setItem('kasirSession', JSON.stringify(found)); location.reload(); } else alert("Data Salah!");
+            if(found) { window.curUser = found; localStorage.setItem('kasirSession', JSON.stringify(found)); location.reload(); } else alert("Error!");
         };
-
         window.handleLogout = () => { localStorage.removeItem('kasirSession'); location.reload(); };
 
         function renderAll() {
-            const sel = document.getElementById('prodSelect'); if(sel) sel.innerHTML = '<option value="">- PILIH PRODUK -</option>' + window.inventory.map((it,i) => `<option value="${i}">${it.name} [Stok:${it.qty}]</option>`).join('');
-            const inv = document.getElementById('invList'); if(inv) inv.innerHTML = window.inventory.map((it) => `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm"><div><b class="text-xs uppercase">${it.name}</b><br><span class="text-blue-600 text-[10px] font-black">STOK: ${it.qty} | LAKU: ${it.sld||0}</span></div><div class="flex gap-2"><button onclick="editStkCloud('${it.id}')" class="bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold uppercase">Edit</button><button onclick="delStk('${it.id}')" class="text-red-500 font-bold px-2">X</button></div></div>`).join('');
-            const cl = document.getElementById('cartList'); if(cl) cl.innerHTML = window.cart.map((c,i) => `<div class="bg-white p-4 rounded-2xl flex justify-between text-xs border items-center shadow-sm"><div><b>${c.name}</b><br>${c.qty} ${c.unit}</div><button onclick="removeFromCart(${i})" class="text-red-500 font-black px-2">X</button></div>`).join('');
+            const sel = document.getElementById('prodSelect'); if(sel) sel.innerHTML = '<option value="">- PILIH -</option>' + window.inventory.map((it,i) => `<option value="${i}">${it.name} [${it.qty}]</option>`).join('');
+            const inv = document.getElementById('invList'); if(inv) inv.innerHTML = window.inventory.map((it) => `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm"><div class="text-xs uppercase"><b>${it.name}</b><br><span class="text-blue-600 font-bold">Stok: ${it.qty}</span></div><div class="flex gap-2"><button onclick="editStkCloud('${it.id}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold">EDIT</button><button onclick="delStk('${it.id}')" class="text-red-500 font-bold px-1 text-xs">X</button></div></div>`).join('');
+            const cl = document.getElementById('cartList'); if(cl) cl.innerHTML = window.cart.map((c,i) => `<div class="bg-white p-4 rounded-2xl flex justify-between text-xs border shadow-sm"><div><b>${c.name}</b><br>${c.qty} ${c.unit}</div><button onclick="removeFromCart(${i})" class="text-red-500 font-black">Hapus</button></div>`).join('');
             document.getElementById('totDisp').innerText = window.cart.reduce((a,b)=>a+(b.prc*b.qty), 0).toLocaleString();
             document.getElementById('hList').innerHTML = window.trxHistory.slice(0,10).map(h => `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center text-[10px] shadow-sm"><div><b>${h.cust}</b><br>${h.ts}<br>Rp ${h.tot.toLocaleString()}</div><div class="flex gap-2"><button onclick='showPreview("trx", ${JSON.stringify(h)})' class="bg-slate-800 text-white px-3 py-2 rounded-xl">STRUK</button><button onclick='delHistory("${h.hid}")' class="text-red-500">X</button></div></div>`).join('');
-            document.getElementById('userList').innerHTML = window.users.map(u => `<div class="flex justify-between p-3 bg-slate-50 rounded-xl text-xs border uppercase"><b>${u.u}</b><button onclick="delUser('${u.id}')" class="text-red-500 font-bold">Hapus</button></div>`).join('');
+            document.getElementById('userList').innerHTML = window.users.map(u => `<div class="flex justify-between p-3 bg-slate-50 rounded-xl text-xs border"><span><b>${u.u.toUpperCase()}</b></span><button onclick="delUser('${u.id}')" class="text-red-500 font-bold">Hapus</button></div>`).join('');
         }
 
+        window.tab = (t) => { ['kasir','stok','admin','hist'].forEach(k => { document.getElementById('sec-'+k)?.classList.add('hidden'); document.getElementById('t-'+k)?.classList.remove('tab-active'); }); document.getElementById('sec-'+t).classList.remove('hidden'); document.getElementById('t-'+t).classList.add('tab-active'); };
+        window.formatRp = (e) => { let v = e.value.replace(/\D/g, ''); e.value = v ? parseInt(v).toLocaleString('id-ID') : ''; };
+        window.setUnit = (u) => { window.selectedUnit = u; ['BKS','PAK','BALL'].forEach(v => { const el = document.getElementById('u-'+v); if(el) el.className = (v === u) ? 'flex-1 p-3 border-2 border-blue-600 bg-blue-50 rounded-xl font-black text-[10px]' : 'flex-1 p-3 border-2 rounded-xl font-black text-[10px]'; }); };
+        window.handleProductChange = () => { document.getElementById('unitWrap').classList.toggle('hidden', !document.getElementById('prodSelect').value); window.setUnit('BKS'); };
+        window.closePreview = () => document.getElementById('preview-overlay').style.display = 'none';
         window.addToCart = () => {
             const idx = document.getElementById('prodSelect').value; if(idx==="") return;
             const it = window.inventory[idx];
@@ -350,7 +365,6 @@
             window.cart.push({ name: it.name, unit: window.selectedUnit, base: bp, prc: bp-d, qty: q, id: it.id }); 
             renderAll();
         };
-
         window.saveStk = () => {
             const n = document.getElementById('stkName').value.toUpperCase();
             const eid = document.getElementById('editId').value;
@@ -361,18 +375,15 @@
             ['stkName','stkBks','stkPak','stkBall','stkQty','editId'].forEach(id => document.getElementById(id).value="");
             document.getElementById('stkBtn').innerText = "Simpan";
         }
-
         window.editStkCloud = (id) => {
             const it = window.inventory.find(x => x.id === id);
             document.getElementById('stkName').value = it.name; document.getElementById('stkBks').value = it.pB; document.getElementById('stkPak').value = it.pP; document.getElementById('stkBall').value = it.pL; document.getElementById('stkQty').value = it.qty;
             document.getElementById('editId').value = it.id; document.getElementById('stkBtn').innerText = "Update"; window.scrollTo({top:0, behavior:'smooth'});
         };
-
         window.delStk = (id) => { if(confirm("Hapus?")) remove(ref(db, 'v11/inventory/' + id)); };
         window.delHistory = (hid) => { if(confirm("Hapus?")) remove(ref(db, 'v11/history/' + hid)); };
         window.addUser = () => { const u = document.getElementById('newU').value.trim().toLowerCase(); const p = document.getElementById('newP').value.trim(); if(!u||!p) return; set(push(ref(db, 'v11/users')), {u, p, r:'kasir'}); document.getElementById('newU').value=""; document.getElementById('newP').value=""; };
         window.delUser = (id) => { if(confirm("Hapus?")) remove(ref(db, 'v11/users/'+id)); };
-        window.saveCfg = () => { set(ref(db, 'v11/config'), { n: document.getElementById('cfgN').value, a: document.getElementById('cfgA').value, p: window.config.p, l: window.config.l }); alert("Ok!"); };
         window.removeFromCart = (i) => { window.cart.splice(i, 1); renderAll(); };
     </script>
 </body>
